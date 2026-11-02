@@ -1,0 +1,1 @@
+"""Knowledge Studio application package."""

@@ -1,0 +1,9 @@
+{
+  "name": "knowledge-studio-dom-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DOM regression checks for Markdown, citations and original-document viewing.",
+  "devDependencies": {
+    "jsdom": "28.1.0"
+  }
+}

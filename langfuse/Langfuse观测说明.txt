@@ -1,0 +1,147 @@
+知屿 Knowledge Studio：Langfuse 独立观测说明
+
+一、这一部分做了什么
+
+在原有知识库问答流程外增加观测，记录各关键环节的输入、输出、耗时和错误，帮助判断一次回答究竟慢在模型加载、等待检索、向量查询、模型生成，还是保存记录。
+
+所有新增代码、配置、依赖、启动入口和验证资料都位于本 langfuse 文件夹。没有给原 app 文件添加 import、装饰器或回调，也没有修改原 .env、requirements.txt 和原启动文件。原文件保留原样，新入口只在自己的进程内临时包装函数；退出该进程后包装自动消失。
+
+二、能观测到哪些环节
+
+问答链路示例：
+
+rag_chat_stream                         整次流式问答
+  retrieve_documents                    包含等待检索锁、读取文档清单和检索
+    sqlite_documents                    读取文档清单
+    milvus_retrieval                     检索结果、检索时间、缓存是否命中
+      rag_get_store                     准备向量库和嵌入模型
+      milvus_similarity_search_with_score 实际向量检索
+        embed_query                     问题向量化
+  rag_stream_answer                     回答生成流程
+    rag_get_llm                         准备模型客户端
+    DeepSeek-generation                 模型请求和完整回答、模型首字时间、Token
+  persist_answer                        完整回答保存流程
+    sqlite_save_message                 保存会话、回答和引用
+
+普通问答根节点为 rag_chat。启动预热单独记录为 rag_warmup。
+缓存命中时不会执行问题向量化和实际向量查询，milvus_retrieval 的 metadata.cache_hit 会为 true；缺少这些子节点不表示观测丢失。
+
+文档操作还会记录：
+document_create：文档收录总流程；
+document_parse / document_split：原文解析及分块；
+embed_documents / milvus_add_texts：片段向量化及写入；
+sqlite_add_document：保存文档清单；
+document_remove / document_clear：移除或清空流程；
+document_original：完整原文读取入口。
+
+三、输入、输出和耗时的含义
+
+1. 输入和输出：问题、命中的来源及片段、模型实际收到的消息、回答、文档解析结果、数据库操作结果等。二进制上传流仅记录类型等信息，不把整个 PDF 二进制发送到云端。
+2. 总耗时：根节点从开始执行到完整流程结束的时间。metadata.observed_duration_ms 包含观测包装及保存过程，可能与原页面原有 duration_ms 略有差异；页面原统计计算保持原样。
+3. 模型首字时间：从模型调用开始到收到第一个非空文本块。Generation 的 completion_start_time 用于 Langfuse 的 TTFT 展示。
+4. 页面首字时间：问答根节点从开始处理到第一个回复文本块的时间，包含此前的检索等步骤；不等同于模型 TTFT。
+5. Token：请求模型在流式响应中返回用量，按服务商实际返回值记录。没有返回用量时保留缺失，不自行编造 Token 或费用；费用能否显示取决于 Langfuse 是否配置了对应模型价格。
+6. 错误和取消：失败节点标记 ERROR，流式回答中断会标记；提前关闭迭代时标记取消。原来“只有完整回答才保存”的逻辑保持原样。
+7. 内容边界：单次输入或输出默认最多记录约 20000 字符，超出时附带截断标记；高维向量记录维度和少量预览，不上传整批向量。
+
+四、怎么启动与停止
+
+1. 本机独立依赖已经安装到 langfuse/.packages，继续使用原 Python：
+   F:\anaconda\anaconda3\envs\rag-env\python.exe
+   没有向原 Python 环境安装或升级软件包。
+2. 双击本文件夹中的“启动观测.cmd”，随后访问：
+   http://127.0.0.1:8010
+   如当前运行的是经核实的本项目原实例，新入口会先停止该实例再切换；不会停止共享 Milvus 或不明归属的其他进程。
+3. 正常上传、问答即可产生观测。界面及原有 API 地址保持一致。
+4. 双击“停止观测.cmd”停止该独立实例。停止入口请求正常退出，并执行观测刷新；关闭启动窗口不会停止后台服务。
+5. 重复启动不会创建第二个实例，重复停止会提示已经停止。
+6. “检查观测连接.cmd”用于验证独立配置中的项目密钥及区域是否可以认证。
+7. 如需重建独立依赖，先停止观测实例，再运行“安装观测依赖.cmd”；它只安装到本文件夹。
+
+命令行入口（在项目根目录执行）：
+  原Python -B -X utf8 langfuse/run.py start
+  原Python -B -X utf8 langfuse/run.py stop
+  原Python -B -X utf8 langfuse/run.py status
+  原Python -B -X utf8 langfuse/run.py check
+  原Python -B -X utf8 langfuse/run.py test
+
+不带参数或使用 serve 可在前台运行，按 Ctrl+C 正常退出。
+通过原来的启动方式启动项目时，不会挂载本次新增观测；需要采集时使用本文件夹的入口。
+
+五、在哪里看
+
+打开 https://us.cloud.langfuse.com ，进入对应项目的 Tracing / Traces 页面。
+选择 rag_chat、rag_chat_stream 或文档操作记录，展开调用树查看瀑布图。
+点击具体节点查看输入、输出、metadata 和耗时；模型节点查看 TTFT、Token。
+session_id、message_id 等业务标识用于关联问答；根节点保留会话信息。
+
+本地运行状态：
+  http://127.0.0.1:8010/api/langfuse/status
+其中 enabled 表示本机观测已启用，不等于实时云端连通性；云端认证请使用检查入口。
+last_trace_id 可帮助定位最近创建的链路。观测通过后台批量发送，页面出现记录可能稍有延迟。
+
+六、文件位置与开关
+
+kb_observability/tracing.py          安全序列化、链路父子关系、流式跟踪、时间和用量记录
+kb_observability/instrumentation.py  统一登记需要观测的函数，在运行时挂载
+kb_observability/runner.py           独立服务的启停、就绪检查和连接检查
+run.py                              启动入口、独立依赖路径
+requirements.txt                    兼容现有 Python 3.10 的 SDK 依赖
+.packages/                          本目录专用依赖，运行时需要保留
+.env                                本目录专用密钥与配置
+.env.example                        不含真实密钥的配置示例
+tests/                              流式上下文、失败旁路、用量与内容处理测试
+temp/                               服务日志、进程记录，以及可按需清理的验证产物
+
+独立 .env 中的设置：
+LANGFUSE_ENABLED=false              暂停采集，问答继续执行
+LANGFUSE_CAPTURE_CONTENT=false      不记录具体输入输出，仍记录时间和状态
+LANGFUSE_MAX_CONTENT_CHARS=20000     调整内容记录上限
+修改独立配置后，停止并重新启动观测实例生效。
+
+密钥仅在独立 .env 中；代码及说明不包含真实密钥，观测数据中的密钥字段和已配置密钥值会被替换。观测启用且内容采集开启时，问题、检索片段和回答将发送至上述 Langfuse 项目，这是查看模块输入输出所使用的数据。
+
+七、验证与维护
+
+run.py test 执行新增观测测试和原有项目回归测试，使用模拟云端与临时数据，不向正式会话写入测试消息。
+此前已通过 28 项测试（原有 19 项和新增 9 项），并用数据库副本完成真实模型与云端验证。历史安装日志、调试脚本、数据快照和验收报告已清理；正式测试代码仍在，可通过 run.py test 再次验证。删除这些本地报告不会删除 Langfuse 云端的历史链路。
+
+正式数据库位于项目根目录 data/workspace.db。temp/live/workspace.db 若仍存在，是历史验证副本，不供正式问答使用。
+
+正常停止服务后可按需清理临时测试报告和数据库副本；运行时保留 temp/runtime 中的进程记录，停止入口需要用它核实归属。.env 和 .packages 是运行配置及依赖，不是临时文件。
+
+本模块使用官方 SDK 的 observation / generation 接口，不依赖 Gemini 示例中的旧 langfuse.decorators 接口，也不要求升级项目原有 LangChain。
+根 langfuse 目录不放置 __init__.py，避免覆盖官方同名 SDK；本项目观测代码的包名为 kb_observability。
+
+八、跟着操作一次
+
+1. 双击本目录“启动观测.cmd”。当前实例已运行时会提示“未重复启动”。
+2. 可先双击“检查观测连接.cmd”，看到“Langfuse 项目认证通过”后，确认本机可连接云端。
+3. 打开 http://127.0.0.1:8010/chat ，新建会话，输入一条与资料相关的问题，等待完整回答。
+4. 打开 https://us.cloud.langfuse.com ，登录保存这组项目密钥的账号，进入对应项目。打开 Tracing / Traces 中最近的 rag_chat_stream；必要时选择最近一小时并刷新。
+5. 点击根节点，看整次问答的输入、输出和总耗时；展开 retrieve_documents → milvus_retrieval，查看检索片段、检索耗时和 metadata.cache_hit；展开 rag_stream_answer → DeepSeek-generation，查看实际提示词、回答、Token 和模型首字时间；点击 sqlite_save_message，查看保存记录环节。
+6. 在 Timeline 或瀑布图中比较耗时。父节点包含子节点，不能把所有父子节点时间直接相加。模型首字时间只计算模型调用开始后的等待，页面首字时间还包含之前的检索等步骤。
+7. 用完后双击“停止观测.cmd”；以后需要采集时继续使用本目录入口。
+
+本次已实际生成的演示会话：
+http://127.0.0.1:8010/chat?session=309d0c383a124215b762ac52efd32adf
+对应云端链路：
+https://us.cloud.langfuse.com/project/cmvxqjrqw004oad0jsjmhp6to/traces/1ef1b0ec9c911449fd8ba8e33eb2d091
+演示问题带有“Langfuse演示”标记，已保存在最近会话中，可反复对照。
+这次应用记录总耗时 3040 ms，检索 1636 ms；云端模型节点耗时约 1364 ms，模型首字约 1048 ms，Token 为输入 1510、输出 36、总计 1546。这是一次实际样本，不代表每次耗时相同。
+
+九、如何接入原来的项目
+
+启动观测.cmd → run.py → runner.py 的 serve() → instrumentation.install() → 加载原 app.main.app → 启动原 FastAPI 应用。
+
+run.py 将本目录的独立 SDK 和原项目路径加入模块搜索路径。
+instrumentation.py 在当前进程中，把 chat.stream、rag.retrieve、ChatOpenAI.stream、数据库保存等函数的引用替换为带观测的包装函数。这个做法通常称为运行时包装或 monkey patch。
+tracing.py 中的包装函数先记录输入及开始时间，再调用原函数，随后记录返回值、结束时间和错误；流式回答在每次迭代时记录数据，保持原有文本与事件返回。
+模型流请求同时开启服务商的用量返回，用实际响应中的用量填写 Token。SDK 将链路事件放进队列，再在后台发送至 Langfuse。
+runner.py 仍加载并启动原来的 app.main.app，因此继续使用同一个页面、端口、SQLite、上传文件和 Milvus 集合；它还在退出时刷新尚未发送的观测数据。
+
+原 app 源文件没有因此增加 import 或装饰器。包装只存在于本次观测进程的内存里，退出该进程就消失；下次使用原启动入口时不会自动安装这些包装。
+
+参考：
+https://langfuse.com/docs/observability/sdk/instrumentation
+https://langfuse.com/docs/observability/sdk/advanced-features

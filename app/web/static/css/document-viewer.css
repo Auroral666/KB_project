@@ -1,0 +1,12 @@
+.original-toolbar{display:flex;align-items:center;gap:5px;padding:8px 12px;background:#f8fafd;border-bottom:1px solid #e4eaf3;flex-shrink:0;font-size:10px;color:#8091ab;min-width:0}
+.original-toolbar[hidden]{display:none}.original-toolbar button{border:1px solid #e0e7f1;background:#fff;border-radius:5px;padding:3px 7px;font-size:10px;color:#7d93b6;cursor:pointer}.original-toolbar button:disabled{opacity:.4;cursor:default}
+.original-toolbar input{width:36px;border:1px solid #e0e7f1;border-radius:5px;padding:3px 2px;text-align:center;font:10px var(--mono);color:#657e9f;background:#fff;appearance:textfield;-moz-appearance:textfield}.original-toolbar input::-webkit-inner-spin-button{display:none}
+.original-toolbar select{min-width:0;font-size:9px;padding:4px 3px;margin-left:auto;max-width:65px}.original-toolbar #original-jump{white-space:nowrap;font-size:9px}
+.chat-page #source-fragments.original-viewer{padding:12px;overflow:auto;background:#edf1f6;scrollbar-width:none;position:relative}
+.original-pdf-page{position:relative;background:white;box-shadow:0 2px 9px #30486518;margin:0 auto;flex-shrink:0;line-height:1;text-align:initial;overflow:hidden}
+.original-pdf-page canvas{display:block}.original-pdf-page .textLayer{z-index:1}
+.original-pdf-page mark.original-highlight{color:transparent;background:#ffe15999;padding:0;border-radius:1px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.original-full-text{background:#fff;min-height:100%;padding:20px;white-space:pre-wrap;line-height:2;color:#60718b;font-size:12px;overflow-wrap:anywhere;box-shadow:0 2px 9px #3048650e}
+.original-full-text mark.original-highlight{background:#ffe994;color:inherit;padding:1px 0;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.original-loading,.original-error{padding:30px 15px;text-align:center;font-size:11px;line-height:1.9;color:#98a8bf}.original-error{color:#b77c8b;background:#fff9fa;border:1px solid #f0dce2;border-radius:9px}
+@media(max-width:760px){.original-toolbar{padding:8px 9px;gap:4px}.original-toolbar button{padding:3px 6px}}

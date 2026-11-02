@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eef1f6">
+  <meta name="description" content="知屿 Knowledge Studio — 让文档成为可以对话的知识。">
+  <title>{{ {'/':'工作台','/chat':'智能问答','/knowledge':'知识库','/insights':'数据洞察'}[page] }} · 知屿 Knowledge Studio</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/workspace.css">
+  <link rel="stylesheet" href="/static/css/markdown.css">
+  {% if page=='/chat' %}
+  <link rel="stylesheet" href="/static/css/chat.css">
+  <link rel="stylesheet" href="/static/css/citations.css">
+  <link rel="stylesheet" href="/static/vendor/pdfjs/text_layer.css">
+  <link rel="stylesheet" href="/static/css/document-viewer.css">
+  <script defer src="/static/js/text-locator.js"></script>
+  <script defer src="/static/js/document-viewer.js"></script>
+  <script defer src="/static/js/citations.js"></script>
+  {% endif %}
+  <script defer src="/static/vendor/marked/marked.umd.js"></script>
+  <script defer src="/static/vendor/dompurify/purify.min.js"></script>
+  <script defer src="/static/js/markdown.js"></script>
+  <script defer src="/static/js/workspace.js"></script>
+</head>
+<body data-page="{{ page }}">
+<svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11a8 8 0 0 1-8 8H7l-4 3V11a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/><path d="M8 10h8M8 14h5"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4h7a3 3 0 0 1 3 3v14a4 4 0 0 0-3-2H4zM14 7a3 3 0 0 1 3-3h4v15h-4a4 4 0 0 0-3 2"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 3v17h17M8 14l4-5 4 3 5-8"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M5 3h9l5 5v13H5zM14 3v6h5M8 13h8M8 17h5"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.6 6.4L21 12l-6.4 2.6L12 21l-2.6-6.4L3 12l6.4-2.6Z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v13m-5-5 5 5 5-5M4 18v3h16v-3"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 10 5-10 5L2 8Zm-10 9 10 5 10-5M2 16l10 5 10-5"/></symbol>
+</defs></svg>
+{% macro icon(name, cls='') %}<svg class="icon {{ cls }}" aria-hidden="true"><use href="#i-{{ name }}"/></svg>{% endmacro %}
+<aside class="sidebar">
+  <a class="brand" href="/" aria-label="知屿工作台"><span class="brand-mark">{{ icon('layers') }}</span><span><strong>知屿<span class="brand-dot">.</span></strong><small>KNOWLEDGE STUDIO</small></span></a>
+  <div class="workspace-label"><span class="avatar-small">K</span><div>我的知识空间<small>PERSONAL WORKSPACE</small></div><span class="workspace-indicator"></span></div>
+  <div class="nav-caption">工作空间</div>
+  <nav aria-label="主导航">
+  {% for url,name,symbol in [('/','工作台','grid'),('/chat','智能问答','chat'),('/knowledge','知识库','book'),('/insights','数据洞察','chart')] %}
+    <a href="{{ url }}" class="nav-item {{ 'active' if page==url else '' }}" {% if page==url %}aria-current="page"{% endif %}>{{ icon(symbol) }}<span>{{ name }}</span>{% if url=='/knowledge' %}<span class="nav-count" id="nav-doc-count">—</span>{% endif %}</a>
+  {% endfor %}
+  </nav>
+  <div class="sidebar-bottom"><div class="local-card"><span class="status-dot" id="service-dot"></span><span id="service-label">正在连接工作空间</span><small>文档与对话保存在本地</small></div><div class="profile"><span class="profile-avatar">K</span><div>个人工作空间<small>Knowledge Studio · v1.0</small></div></div></div>
+</aside>
+<main>
+  <header class="topbar"><div><span class="breadcrumb">工作空间</span><span class="breadcrumb-slash">/</span><span>{{ {'/':'工作台','/chat':'智能问答','/knowledge':'知识库','/insights':'数据洞察'}[page] }}</span></div><div class="topbar-right"><span class="local-badge"><span class="status-dot"></span>本地工作台</span><span class="header-date" id="header-date"></span></div></header>
+  <div class="page-content {{ 'chat-page' if page=='/chat' else '' }}">
+  {% if page=='/' %}
+    <section class="page-heading"><div><div class="eyebrow">YOUR KNOWLEDGE, CONNECTED</div><h1>让每一份知识，都有回响<span class="blue-text">。</span></h1><p>收集文档、连接信息，让答案从你的知识中生长。</p></div><button class="button primary" data-upload>{{ icon('plus') }}添加文档</button></section>
+    <section class="hero-card"><div class="hero-copy"><span class="pill">{{ icon('spark') }}你的专属知识助手</span><h2>从一份文档，<br>到一个清晰的答案。</h2><p>把散落的资料汇聚于此。提问、检索、追溯来源，<br class="desktop-break">让每一次探索都有据可循。</p><a class="button primary" href="/chat">开始一段对话{{ icon('arrow') }}</a><a class="hero-secondary" href="/knowledge">管理我的知识库 ↗</a></div><div class="knowledge-orbit" aria-hidden="true"><div class="orbit-ring ring-one"></div><div class="orbit-ring ring-two"></div><div class="orbit-line line-one"></div><div class="orbit-line line-two"></div><div class="orbit-line line-three"></div><div class="orbit-core">{{ icon('layers') }}<span>知 识 相 连</span></div><div class="orbit-file orbit-pdf">{{ icon('file') }}<span>PDF</span></div><div class="orbit-file orbit-doc">{{ icon('file') }}<span>DOCX</span></div><div class="orbit-file orbit-txt">{{ icon('file') }}<span>TEXT</span></div><span class="orbit-point p-one"></span><span class="orbit-point p-two"></span><span class="orbit-caption">DOCUMENTS INTO KNOWLEDGE</span></div></section>
+    <section class="stats-grid" id="overview-stats" aria-label="知识库统计"><div class="loading-card">正在读取工作空间…</div></section>
+    <div class="dashboard-grid"><section class="panel"><div class="panel-heading"><div><h2>问答活动</h2><p>每一次提问，都是知识的连接</p></div><a class="text-link" href="/insights">查看洞察{{ icon('arrow') }}</a></div><div id="activity-chart" class="activity-chart"></div></section><section class="panel"><div class="panel-heading"><div><h2>知识构建</h2><p>从原始资料到可追溯的回答</p></div><span class="subtle-tag">RAG</span></div><div id="pipeline" class="pipeline"></div></section></div>
+    <section class="panel"><div class="panel-heading"><div><h2>最近收录</h2><p>让你的知识空间持续生长</p></div><a class="text-link" href="/knowledge">全部文档{{ icon('arrow') }}</a></div><div id="recent-documents"></div></section>
+  {% elif page=='/knowledge' %}
+    <section class="page-heading"><div><div class="eyebrow">YOUR PERSONAL LIBRARY</div><h1>知识库<span class="blue-text">。</span></h1><p>把有价值的资料留下，让零散的信息彼此相连。</p></div><button class="button primary" data-upload>{{ icon('plus') }}添加文档</button></section>
+    <section class="stats-grid compact" id="library-stats"></section>
+    <button class="upload-zone" id="drop-zone" data-upload>{{ icon('upload') }}<strong>拖入文档，拓展你的知识边界</strong><span>或点击选择文件 · PDF / DOCX / TXT / Markdown · 单个文件不超过 20 MB</span></button>
+    <section class="panel library-panel"><div class="panel-heading"><div><h2>全部文档 <span class="inline-count" id="document-count">0</span></h2><p>已收录的文档均可用于知识问答</p></div><div class="library-tools"><label class="search-field">{{ icon('search') }}<input id="document-search" placeholder="搜索文档名称" aria-label="搜索文档名称"></label><select id="type-filter" aria-label="按文件类型筛选"><option value="all">全部类型</option><option value=".pdf">PDF</option><option value=".docx">Word</option><option value=".txt">TXT</option><option value=".md">Markdown</option></select></div></div><div id="document-list"></div><div class="library-footer"><span>文件和知识片段独立保存在当前工作空间</span><button class="text-button danger" id="clear-library">{{ icon('trash') }}清空知识库</button></div></section>
+  {% elif page=='/chat' %}
+    <section class="page-heading chat-heading"><div><div class="eyebrow">ASK YOUR KNOWLEDGE</div><h1>智能问答<span class="blue-text">。</span></h1></div><button class="button secondary" id="new-chat">{{ icon('plus') }}新建对话</button></section>
+    <div class="chat-layout"><section class="panel chat-main"><div class="chat-toolbar"><span>{{ icon('spark') }}知识库助手</span><span class="subtle-tag">基于你的文档回答</span><button type="button" class="context-mobile-toggle" id="show-chat-context">最近会话</button></div><div id="chat-messages" class="chat-messages" aria-live="polite" tabindex="0" aria-label="知识库助手对话"><div class="chat-welcome" id="chat-welcome"><div class="welcome-mark">{{ icon('layers') }}</div><div class="eyebrow">A LITTLE CURIOSITY GOES A LONG WAY</div><h2>你的下一个问题是什么？</h2><div class="suggestions"><button data-prompt="请总结知识库文档的核心内容。">{{ icon('file') }}总结文档的核心内容{{ icon('arrow') }}</button><button data-prompt="请提取文档中的关键条件、数字和时间节点。">{{ icon('search') }}查找关键条件与时间节点{{ icon('arrow') }}</button><button data-prompt="请根据文档列出需要关注的事项，并注明来源。">{{ icon('book') }}整理重点并追溯来源{{ icon('arrow') }}</button></div></div></div><form id="chat-form" class="chat-composer"><label class="sr-only" for="question">输入你的问题</label><textarea id="question" maxlength="4000" rows="2" placeholder="向你的知识库提问…"></textarea><div class="composer-footer"><span id="composer-hint">Enter 发送 · Shift + Enter 换行</span><button type="submit" class="button primary" id="send-message" aria-label="发送问题">发送{{ icon('arrow') }}</button></div></form><p class="chat-note">回答由 AI 根据检索资料生成，请结合引用原文核实。</p></section><aside class="chat-context" aria-label="会话与引用资料">
+  <div id="chat-context-default" class="chat-context-default">
+    <button type="button" class="icon-button context-close" id="close-chat-context" aria-label="关闭最近会话">{{ icon('close') }}</button>
+    <section class="panel knowledge-panel"><div class="panel-heading"><h2>知识范围</h2>{{ icon('book') }}</div><div id="chat-documents"></div><a href="/knowledge" class="text-link context-link">管理知识库{{ icon('arrow') }}</a></section>
+    <section class="panel history-panel"><div class="panel-heading"><h2>最近会话</h2>{{ icon('clock') }}</div><div id="session-list" tabindex="0" aria-label="最近会话列表"></div></section>
+  </div>
+  <section id="source-reader" class="panel source-reader" aria-label="引用原文阅读窗口" hidden>
+    <header class="source-reader-heading"><div><h2>引用原文</h2><p id="source-document-count"></p></div><button type="button" class="icon-button" id="close-source-reader" aria-label="关闭引用原文">{{ icon('close') }}</button></header>
+    <div id="source-document-tabs" class="document-tabs" role="tablist" aria-label="引用文档"></div>
+    <section id="source-document" class="source-document" role="tabpanel" aria-label="文档原文">
+      <header class="source-document-header"><h3 id="source-document-name" class="source-document-name"></h3><div class="source-document-toolbar"><span id="source-document-info"></span><a id="source-download" class="text-link">下载原文{{ icon('down') }}</a></div></header>
+      <div id="original-toolbar" class="original-toolbar" aria-label="原文翻页与缩放" hidden>
+        <button type="button" id="original-prev" aria-label="原文上一页">‹</button>
+        <input type="number" id="original-page" min="1" value="1" aria-label="原文页码">
+        <span id="original-total"></span>
+        <button type="button" id="original-next" aria-label="原文下一页">›</button>
+        <select id="original-zoom" aria-label="原文缩放"><option value="fit">适宽</option><option value="1">100%</option><option value="1.5">150%</option><option value="2">200%</option></select>
+        <button type="button" id="original-jump">回到引用</button>
+      </div>
+      <div id="source-fragments" class="source-fragments original-viewer" tabindex="0" aria-label="完整原文阅读区域"></div>
+    </section>
+    <footer class="source-panel-note">当前展示完整原文件，可翻页浏览；黄色标记对应原文中的引用位置。</footer>
+  </section>
+</aside><button type="button" id="source-backdrop" class="source-backdrop" aria-label="关闭右侧阅读窗口" hidden></button></div>
+  {% elif page=='/insights' %}
+    <section class="page-heading"><div><div class="eyebrow">SEE THE KNOWLEDGE FLOW</div><h1>数据洞察<span class="blue-text">。</span></h1><p>看见知识的积累，也看见每一次提问的价值。</p></div><div class="segmented" role="group" aria-label="统计周期"><button data-days="7" class="selected">近 7 天</button><button data-days="30">近 30 天</button></div></section>
+    <section class="stats-grid" id="insight-stats"></section>
+    <div class="insights-grid"><section class="panel"><div class="panel-heading"><div><h2>问答趋势</h2><p>当前统计周期内的真实问答记录</p></div><span class="chart-legend"><i></i>提问次数</span></div><div id="insight-chart" class="activity-chart large"></div></section><section class="panel"><div class="panel-heading"><div><h2>文档构成</h2><p>当前知识库的文件类型分布</p></div>{{ icon('layers') }}</div><div id="document-composition"></div></section></div>
+    <section class="panel"><div class="panel-heading"><div><h2>检索与回答</h2><p>打开一条记录，查看本次检索命中的原文与耗时</p></div><span class="subtle-tag">最近 8 条记录</span></div><div id="query-records"></div></section>
+  {% endif %}
+  {% if page!='/chat' %}<footer class="page-footer"><span>知屿 · 让知识相连</span><span>Built around your knowledge.</span></footer>{% endif %}
+  </div>
+</main>
+<input type="file" id="file-input" accept=".pdf,.docx,.txt,.md" multiple hidden>
+<div class="toast-region" id="toast-region" role="status" aria-live="polite"></div>
+<dialog id="confirm-dialog"><form method="dialog"><div class="dialog-icon">{{ icon('trash') }}</div><h2 id="confirm-title">移除文档</h2><p id="confirm-message"></p><div class="dialog-actions"><button class="button secondary" value="cancel">取消</button><button class="button destructive" value="confirm" id="confirm-action">确认移除</button></div></form></dialog>
+<div id="upload-progress" class="upload-progress" hidden><span class="spinner"></span><div><strong id="upload-label">正在收录文档</strong><small>解析文字并建立知识索引，请稍候…</small></div></div>
+</body>
+</html>

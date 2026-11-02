@@ -1,0 +1,11 @@
+.chat-page .chat-main{min-height:560px;height:calc(100dvh - 216px)}
+.chat-page .chat-welcome{padding-top:35px}.chat-page .suggestions{margin-top:28px}
+.chat-page .chat-message{width:100%;max-width:100%;margin-bottom:29px}
+.chat-page .message-content{font-size:13px;line-height:1.95;min-width:0}
+.chat-page .user-message{display:flex;flex-direction:column;align-items:flex-end;width:fit-content;max-width:84%;margin-left:auto;margin-right:0}
+.chat-page .user-message .message-heading{flex-direction:row-reverse;justify-content:flex-start}
+.chat-page .user-message .message-content{display:block;max-width:100%;margin:0 33px 0 0;padding:11px 16px;text-align:left;border-radius:12px 0 12px 12px;white-space:pre-wrap;color:#5478aa;background:#eaf2ff;border-color:#dfeafe}
+.chat-page .assistant-message{margin-right:auto;text-align:left}
+.chat-page .assistant-message .message-content{margin-left:33px;max-width:calc(100% - 33px)}
+.chat-page .partial-answer-note{font-size:10px;color:#bf8190;margin-top:12px;padding:9px 12px;border:1px solid #f1dce1;background:#fff7f8;border-radius:8px}
+@media(max-width:760px){.chat-page .chat-main{height:calc(100dvh - 260px);min-height:540px}.chat-page .message-content{font-size:12px}.chat-page .user-message{max-width:91%}.chat-page .user-message .message-content{margin-right:0;padding:10px 13px}.chat-page .assistant-message .message-content{margin-left:0;max-width:100%}.chat-page .message-timing,.chat-page .message-sources{margin-left:0}.chat-page .markdown-body th,.chat-page .markdown-body td{padding:8px 10px;min-width:70px}}
