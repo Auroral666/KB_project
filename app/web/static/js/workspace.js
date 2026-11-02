@@ -13,6 +13,8 @@ let selectedDays = 7;
 let sessionId = new URLSearchParams(location.search).get("session") || null;
 let sending = false;
 let uploading = false;
+let deleting = false;
+const selectedDocuments = new Set();
 
 async function api(url, options = {}) {
   const response = await fetch(url, options);
@@ -73,6 +75,7 @@ function renderOverview() {
 }
 
 function renderLibrary() {
+  for (const id of selectedDocuments) if (!workspace.documents.some(d => d.id === id)) selectedDocuments.delete(id);
   const s = workspace.summary;
   $("#library-stats").innerHTML = stat("文档总数",number(s.documents),"份","构建属于你的知识空间","file") + stat("知识片段",number(s.chunks),"段","保留上下文的内容切片","layers") + stat("文档占用",size(s.storage_bytes).split(" ")[0],size(s.storage_bytes).split(" ")[1],"原始文件总大小","book");
   $("#document-count").textContent = number(s.documents);
@@ -83,10 +86,19 @@ function filterDocuments() {
   const search = $("#document-search").value.trim().toLocaleLowerCase();
   const type = $("#type-filter").value;
   const docs = workspace.documents.filter(d => d.name.toLocaleLowerCase().includes(search) && (type === "all" || d.extension === type));
-  $("#document-list").innerHTML = docs.length ? `<table class="document-table"><thead><tr><th>文档名称</th><th>知识片段</th><th>收录时间</th><th>状态</th><th>操作</th></tr></thead><tbody>${docs.map(d => `<tr><td><div class="table-doc">${fileBadge(d)}<div class="doc-info"><a class="doc-name" href="/api/documents/${d.id}/download" title="${escapeHTML(d.name)}">${escapeHTML(d.name)}</a><small>${size(d.size)}</small></div></div></td><td>${number(d.chunks)} 段</td><td>${formatDate(d.created_at)}</td><td><span class="indexed">已收录</span></td><td><a href="/api/documents/${d.id}/download" class="icon-button" aria-label="下载 ${escapeHTML(d.name)}">${icon("down")}</a><button class="icon-button danger" data-delete="${d.id}" aria-label="移除 ${escapeHTML(d.name)}">${icon("trash")}</button></td></tr>`).join("")}</tbody></table>` : empty(workspace.documents.length ? "没有找到匹配的文档，试试其他名称或文件类型。" : "这里还没有文档，上传资料后即可开始问答。");
-  $("#clear-library").disabled = !workspace.documents.length || uploading;
+  $("#document-list").innerHTML = docs.length ? `<table class="document-table"><thead><tr><th>文档名称</th><th>知识片段</th><th>收录时间</th><th>状态</th><th>操作</th></tr></thead><tbody>${docs.map(d => `<tr><td><div class="table-doc"><input type="checkbox" class="document-select" data-select-document="${d.id}" aria-label="选择 ${escapeHTML(d.name)}" ${selectedDocuments.has(d.id) ? "checked" : ""}>${fileBadge(d)}<div class="doc-info"><a class="doc-name" href="/api/documents/${d.id}/download" title="${escapeHTML(d.name)}">${escapeHTML(d.name)}</a><small>${size(d.size)}</small></div></div></td><td>${number(d.chunks)} 段</td><td>${formatDate(d.created_at)}</td><td><span class="indexed">已收录</span></td><td><a href="/api/documents/${d.id}/download" class="icon-button" aria-label="下载 ${escapeHTML(d.name)}">${icon("down")}</a><button class="text-button danger document-delete" data-delete="${d.id}" aria-label="移除 ${escapeHTML(d.name)}">${icon("trash")}删除</button></td></tr>`).join("")}</tbody></table>` : empty(workspace.documents.length ? "没有找到匹配的文档，试试其他名称或文件类型。" : "这里还没有文档，上传资料后即可开始问答。");
+  $("#clear-library").disabled = !workspace.documents.length || uploading || deleting;
+  updateDocumentSelection();
+  document.querySelectorAll("[data-select-document]").forEach(input => {
+    input.disabled = uploading || deleting;
+    input.addEventListener("change", () => {
+      if (input.checked) selectedDocuments.add(input.dataset.selectDocument);
+      else selectedDocuments.delete(input.dataset.selectDocument);
+      updateDocumentSelection();
+    });
+  });
   document.querySelectorAll("[data-delete]").forEach(button => {
-    button.disabled = uploading;
+    button.disabled = uploading || deleting;
     button.addEventListener("click", () => deleteDocument(button.dataset.delete));
   });
 }
@@ -321,7 +333,7 @@ function confirmAction(title, message, label) {
 }
 
 async function deleteDocument(id) {
-  if (uploading) return;
+  if (uploading || deleting) return;
   const doc = workspace.documents.find(d => d.id === id);
   if (!doc) return;
   if (!await confirmAction("移除这份文档？",`将移除「${doc.name}」及其知识片段。已有对话记录会保留；如需恢复，请重新上传文档。`,"确认移除")) return;
@@ -329,15 +341,41 @@ async function deleteDocument(id) {
   catch (error) { toast(error.message,true); }
 }
 
+function updateDocumentSelection() {
+  $("#selection-count").textContent = selectedDocuments.size ? `已选择 ${selectedDocuments.size} 份文档` : "勾选文档可批量删除";
+  $("#delete-selected").disabled = !selectedDocuments.size || uploading || deleting;
+}
+
+async function deleteSelectedDocuments() {
+  if (uploading || deleting || !selectedDocuments.size) return;
+  const ids = [...selectedDocuments];
+  if (!await confirmAction("删除所选文档？",`将删除选中的 ${ids.length} 份原文件、向量片段和图谱关系。已有对话记录保留。`,"确认删除")) return;
+  deleting = true;
+  filterDocuments();
+  try {
+    const result = await api("/api/documents/delete",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({doc_ids:ids})});
+    result.deleted.forEach(id => selectedDocuments.delete(id));
+    toast(result.message,Boolean(result.failed.length));
+    for (const failure of result.failed) {
+      const doc = workspace.documents.find(d => d.id === failure.doc_id);
+      toast(`${doc?.name || failure.doc_id}：${failure.reason}`,true);
+    }
+  } catch (error) { toast(error.message,true); }
+  finally {
+    deleting = false;
+    await refreshWorkspace().catch(error => toast(error.message,true));
+  }
+}
+
 async function clearLibrary() {
-  if (uploading || !workspace.documents.length) return;
+  if (uploading || deleting || !workspace.documents.length) return;
   if (!await confirmAction("清空当前知识库？",`将移除当前工作空间的 ${workspace.documents.length} 份文档及其全部知识片段。对话记录仍会保留。如需恢复，请重新上传原始文档。`,"确认清空")) return;
   try { const result = await api("/rag/clear/",{method:"POST"}); toast(result.message); await refreshWorkspace(); }
   catch (error) { toast(error.message,true); }
 }
 
 async function uploadFiles(files) {
-  if (uploading || !files.length) return;
+  if (uploading || deleting || !files.length) return;
   uploading = true;
   $("#upload-progress").hidden = false;
   document.querySelectorAll("[data-upload], [data-delete], #clear-library").forEach(button => button.disabled = true);
@@ -367,6 +405,7 @@ async function uploadFiles(files) {
 
 let jobTimer = null;
 const notifiedJobs = new Set();
+const observedActiveJobs = new Set();
 async function watchIndexJobs() {
   clearTimeout(jobTimer);
   try {
@@ -376,13 +415,15 @@ async function watchIndexJobs() {
       panel = document.createElement("section");
       panel.id = "index-jobs";
       panel.className = "panel";
-      $(".page-content").append(panel);
+      const footer = $(".page-footer");
+      if (footer) footer.before(panel);
+      else $(".page-content").append(panel);
     }
-    const stages = {waiting:"等待处理",semantic_chunking:"语义分块",extracting_relations:"抽取实体关系",writing_vectors:"写入向量",writing_graph:"写入图谱",complete:"完成",failed:"失败"};
-    if (panel) panel.innerHTML = '<div class="panel-heading"><h2>后台建库任务</h2></div>' + jobs.slice(0,10).map(job => `<div class="document-row"><strong>${escapeHTML(job.name)}</strong><span>${escapeHTML(stages[job.stage] || job.stage)}</span><small>任务 ${escapeHTML(job.id.slice(0,8))}${job.error ? ` · ${escapeHTML(job.error)}` : ""}</small></div>`).join("");
+    if (panel) window.KnowledgeJobs.render(panel,jobs);
+    for (const job of jobs) if (["queued","running"].includes(job.status)) observedActiveJobs.add(job.id);
     for (const job of jobs) if (["succeeded","failed"].includes(job.status) && !notifiedJobs.has(job.id)) {
       notifiedJobs.add(job.id);
-      if (job.status === "failed") toast(`${job.name}：${job.error}`,true);
+      if (job.status === "failed" && observedActiveJobs.has(job.id)) toast(`${job.name}：${job.error}`,true);
     }
     const active = jobs.some(j => ["queued","running"].includes(j.status));
     if (active) jobTimer = setTimeout(watchIndexJobs,2000);
@@ -424,6 +465,7 @@ async function initialize() {
     $("#document-search").addEventListener("input",filterDocuments);
     $("#type-filter").addEventListener("change",filterDocuments);
     $("#clear-library").addEventListener("click",clearLibrary);
+    $("#delete-selected").addEventListener("click",deleteSelectedDocuments);
     const zone = $("#drop-zone");
     ["dragenter","dragover"].forEach(name => zone.addEventListener(name,event => { event.preventDefault(); zone.classList.add("dragover"); }));
     ["dragleave","drop"].forEach(name => zone.addEventListener(name,event => { event.preventDefault(); zone.classList.remove("dragover"); }));

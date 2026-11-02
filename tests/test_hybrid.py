@@ -54,8 +54,7 @@ class HybridTests(unittest.TestCase):
             self.assertEqual(graph.extract([Document(page_content="林然负责天枢。")])[0]["chunk"], 1)
             fact["evidence"] = "林然负责不存在的项目。"
             llm.return_value.invoke.return_value.content = json.dumps({"triples":[fact]}, ensure_ascii=False)
-            with self.assertRaisesRegex(ValueError, "逐字依据"):
-                graph.extract([Document(page_content="林然负责天枢。")])
+            self.assertEqual(graph.extract([Document(page_content="林然负责天枢。")]), [])
 
     def test_background_upload_returns_before_worker_and_failure_is_durable(self):
         with TestClient(app) as client, patch.object(index_jobs._executor, "submit") as submit:
@@ -74,9 +73,49 @@ class HybridTests(unittest.TestCase):
             self.assertEqual(list(config.upload_dir.iterdir()), [])
             self.assertEqual(client.get("/api/index-jobs/missing").status_code, 404)
 
+    def test_upload_without_valid_relations_still_finishes_vector_index(self):
+        for output in ('{"triples":[]}', '[]', '{"triples":[{"subject":"林然","predicate":"负责","object":"天枢","evidence":"不存在的依据"}]}'):
+            with TestClient(app) as client, patch.object(index_jobs._executor,"submit"), \
+                 patch.object(rag,"semantic_chunks",return_value=[Document(page_content="一段没有可提取关系的普通文字。")]), \
+                 patch.object(rag,"get_llm") as llm, patch.object(rag,"add_chunks") as add, patch.object(graph,"run") as query:
+                llm.return_value.invoke.return_value.content = output
+                task = client.post("/api/index-jobs",files={"file":("notes.txt",b"plain text")}).json()["task_id"]
+                index_jobs.process(task)
+                self.assertEqual(workspace.job(task)["status"],"succeeded")
+                self.assertIsNotNone(workspace.document(workspace.job(task)["doc_id"]))
+                add.assert_called_once()
+                query.assert_not_called()
+
+    def test_selected_deletion_only_removes_requested_files(self):
+        for doc_id in ("a"*32,"b"*32):
+            workspace.add_document(doc_id,"a.txt",".txt",4,1)
+            (config.upload_dir/(doc_id+".txt")).write_bytes(b"text")
+        with TestClient(app) as client, patch.object(graph,"remove") as graph_delete, patch.object(rag,"delete_chunks") as vector_delete:
+            response = client.post("/api/documents/delete",json={"doc_ids":["a"*32,"a"*32]})
+            self.assertEqual(response.status_code,200)
+            self.assertEqual(response.json()["deleted"],["a"*32])
+            graph_delete.assert_called_once_with("a"*32)
+            vector_delete.assert_called_once_with("a"*32)
+            self.assertIsNone(workspace.document("a"*32))
+            self.assertTrue((config.upload_dir/("b"*32+".txt")).exists())
+            self.assertEqual(client.post("/api/documents/delete",json={"doc_ids":[]}).status_code,422)
+            self.assertEqual(client.post("/api/documents/delete",json={"doc_ids":["../bad"]}).status_code,422)
+            self.assertEqual(client.post("/api/documents/delete",json={"doc_ids":["a"*32]}).json()["failed"][0]["doc_id"],"a"*32)
+            page = client.get("/knowledge").text
+            self.assertIn('href="http://127.0.0.1:7474/browser/"',page)
+            self.assertIn('id="delete-selected"',page)
+
+    def test_batch_delete_reports_failures_and_keeps_failed_document(self):
+        workspace.add_document("a"*32,"a.txt",".txt",4,1)
+        with TestClient(app) as client, patch.object(graph,"remove",side_effect=RuntimeError("offline")):
+            result = client.post("/api/documents/delete",json={"doc_ids":["a"*32]}).json()
+        self.assertEqual(result["deleted"],[])
+        self.assertEqual(len(result["failed"]),1)
+        self.assertIsNotNone(workspace.document("a"*32))
+
     def test_index_success_and_graph_failure_roll_back_both_stores(self):
         chunks = [Document(page_content="林然负责天枢。")]
-        with patch.object(rag, "semantic_chunks", return_value=chunks), patch.object(graph, "extract", return_value=[]), \
+        with patch.object(rag, "semantic_chunks", return_value=chunks), patch.object(graph, "extract", return_value=[{}]), \
              patch.object(rag, "add_chunks"), patch.object(rag, "delete_chunks") as vector_delete, \
              patch.object(graph, "write", side_effect=RuntimeError("graph offline")), patch.object(graph, "remove") as graph_delete:
             with self.assertRaises(RuntimeError):

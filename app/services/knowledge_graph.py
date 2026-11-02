@@ -2,6 +2,7 @@
 import hashlib
 import json
 import re
+import logging
 from functools import lru_cache
 
 from neo4j import GraphDatabase
@@ -52,22 +53,30 @@ def extract(chunks):
              '无关系输出空数组。实体、关系各不超过100字，依据不超过512字。'),
             ("human", chunk.page_content)])
         data = json_response(result.content)
-        if not isinstance(data, dict) or not isinstance(data.get("triples"), list):
+        triples = data if isinstance(data, list) else data.get("triples") if isinstance(data, dict) else None
+        if not isinstance(triples, list):
             raise ValueError("实体关系抽取格式错误。")
-        for fact in data["triples"][:12]:
+        rejected = 0
+        for fact in triples[:12]:
             if not isinstance(fact, dict):
-                raise ValueError("实体关系条目格式错误。")
+                rejected += 1
+                continue
             if not all(isinstance(fact.get(k), str) and fact[k].strip()
                        for k in ("subject", "predicate", "object", "evidence")):
-                raise ValueError("实体关系缺少必要字段。")
+                rejected += 1
+                continue
             fact = {k: fact[k].strip() for k in ("subject", "predicate", "object", "evidence")}
             if any(len(fact[k]) > 100 for k in ("subject", "predicate", "object")):
-                raise ValueError("实体或关系名称过长。")
+                rejected += 1
+                continue
             if fact["evidence"] not in chunk.page_content or any(
                 fact[k] not in fact["evidence"] for k in ("subject", "object")):
-                raise ValueError("抽取关系缺少可核对的逐字依据。")
+                rejected += 1
+                continue
             facts.append({**fact, "chunk": index, "page": int(chunk.metadata.get("page", -1)) + 1,
                           "content": chunk.page_content})
+        if rejected:
+            logging.getLogger("kb_project").warning("Skipped %s unsupported triples in chunk %s", rejected, index)
     return facts
 
 
@@ -76,6 +85,8 @@ def key(label):
 
 
 def write(doc_id, name, facts):
+    if not facts:
+        return
     rows = []
     for fact in facts:
         identity = f"{config.graph_namespace}:{doc_id}:{fact['chunk']}:{fact['subject']}:{fact['predicate']}:{fact['object']}"

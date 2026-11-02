@@ -21,6 +21,7 @@ node tests/test_markdown.cjs
 node tests/test_citations.cjs
 node tests/test_original_document.cjs
 node tests/test_knowledge_graph.cjs
+node tests/test_index_jobs.cjs
 ```
 
 如果以后清理了测试依赖，复制依赖清单后重新安装：

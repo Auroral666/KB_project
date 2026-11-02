@@ -1,15 +1,38 @@
 """HTTP responses for document upload, removal, download and original viewing."""
 import logging
+import re
 from pathlib import Path
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
 
 from app.repositories import workspace
 from app.services import documents, index_jobs
 
 router = APIRouter()
 logger = logging.getLogger("kb_project")
+
+
+class DeleteDocumentsRequest(BaseModel):
+    doc_ids: list[str] = Field(min_length=1, max_length=100)
+
+
+@router.post("/api/documents/delete")
+def delete_selected(body: DeleteDocumentsRequest):
+    if any(not re.fullmatch(r"[a-f0-9]{32}", value) for value in body.doc_ids):
+        raise HTTPException(422, "文档编号格式不正确。")
+    deleted, failed = [], []
+    for doc_id in dict.fromkeys(body.doc_ids):
+        try:
+            documents.remove(doc_id)
+            deleted.append(doc_id)
+        except FileNotFoundError:
+            failed.append({"doc_id": doc_id, "reason": "文档不存在或已移除。"})
+        except Exception:
+            logger.exception("Selected document deletion failed: %s", doc_id)
+            failed.append({"doc_id": doc_id, "reason": "删除失败，请检查向量及图谱服务后重试。"})
+    return {"deleted": deleted, "failed": failed, "message": f"已删除 {len(deleted)} 份文档，失败 {len(failed)} 份。"}
 
 
 @router.post("/api/index-jobs", status_code=202)
@@ -90,7 +113,7 @@ def upload(file: UploadFile = File(...)):
 def remove(doc_id: str):
     try:
         documents.remove(doc_id)
-        return {"message": "文档及对应知识片段已移除。"}
+        return {"message": "文档、对应知识片段和图谱关系已移除。"}
     except FileNotFoundError as exc:
         raise HTTPException(404, str(exc)) from exc
     except Exception as exc:
