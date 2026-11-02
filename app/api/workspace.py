@@ -2,9 +2,10 @@
 from fastapi import APIRouter, Query, Request
 from fastapi.templating import Jinja2Templates
 
-from app.config import WEB_DIR
+from app.config import WEB_DIR, config
 from app.repositories import workspace
-from app.services import rag
+from app.services import rag, knowledge_graph
+import logging
 
 router = APIRouter()
 templates = Jinja2Templates(directory=WEB_DIR / "templates")
@@ -40,4 +41,15 @@ def get_sessions():
 
 @router.get("/api/sessions/{session_id}")
 def get_session(session_id: str):
-    return {"messages": workspace.history(session_id)}
+    messages = workspace.history(session_id)
+    if config.neo4j_enabled:
+        try:
+            sources = knowledge_graph.attach_relations([s for m in messages for s in m["sources"]])
+            offset = 0
+            for message in messages:
+                count = len(message["sources"])
+                message["sources"] = sources[offset:offset + count]
+                offset += count
+        except Exception:
+            logging.getLogger("kb_project").warning("Could not restore historical graph context", exc_info=True)
+    return {"messages": messages}

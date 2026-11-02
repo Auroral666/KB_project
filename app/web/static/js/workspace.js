@@ -173,7 +173,7 @@ function renderAnswerGraph(message, graph, sources) {
   if (!container) {
     container = document.createElement("div");
     container.className = "answer-graph";
-    message.append(container);
+    message.insertBefore(container,message.querySelector(".answer-details"));
   }
   window.KnowledgeGraph.render(container, graph, source => {
     const index = sources.findIndex(s => s.doc_id === source.doc_id && s.chunk === source.chunk);

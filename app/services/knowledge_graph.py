@@ -115,8 +115,8 @@ def clear():
 def search(question, seeds=()):
     # Two undirected hops join facts across documents through the same normalized entity.
     rows = run("""MATCH (a:KBEntity {namespace:$ns})
-        WHERE size(a.key)>1 AND ($question CONTAINS a.key OR EXISTS {
-            MATCH (a)-[s:KB_RELATION]-() WHERE s.namespace=$ns AND s.doc_id IN $seeds })
+        WHERE (size(a.key)>1 AND $question CONTAINS a.key) OR a.key IN $tokens OR EXISTS {
+            MATCH (a)-[s:KB_RELATION]-() WHERE s.namespace=$ns AND s.doc_id IN $seeds }
         WITH a ORDER BY a.key LIMIT 12
         MATCH p=(a)-[:KB_RELATION*1..2]-(b:KBEntity {namespace:$ns})
         WHERE all(r IN relationships(p) WHERE r.namespace=$ns)
@@ -124,7 +124,12 @@ def search(question, seeds=()):
         WITH DISTINCT r LIMIT 60
         RETURN startNode(r).key AS subject_id,startNode(r).name AS subject,
             endNode(r).key AS object_id,endNode(r).name AS object,
-            properties(r) AS fact""", ns=config.graph_namespace, question=key(question), seeds=list(seeds))
+            properties(r) AS fact""", ns=config.graph_namespace, question=key(question), seeds=list(seeds),
+        tokens=re.findall(r"[a-z0-9_]+", question.casefold()))
+    return _sources_from_rows(rows)
+
+
+def _sources_from_rows(rows):
     sources = {}
     for row in rows:
         fact = row["fact"]
@@ -134,6 +139,25 @@ def search(question, seeds=()):
             "to": row["object_id"], "subject": row["subject"], "object": row["object"],
             "label": fact["predicate"], "evidence": fact["evidence"]})
     return list(sources.values())
+
+
+def attach_relations(sources):
+    """Restore graph context for old messages using the exact cited chunk only."""
+    keys = {(s["doc_id"], s["chunk"]) for s in sources if s.get("doc_id")}
+    if not keys:
+        return list(sources)
+    rows = run("""UNWIND $keys AS source
+        MATCH (a:KBEntity)-[r:KB_RELATION {namespace:$ns,doc_id:source.doc_id}]->(b:KBEntity)
+        WHERE r.chunk=source.chunk
+        RETURN a.key AS subject_id,a.name AS subject,b.key AS object_id,b.name AS object,properties(r) AS fact""",
+        ns=config.graph_namespace, keys=[{"doc_id": d,"chunk": c} for d,c in keys])
+    related = {(s["doc_id"],s["chunk"]):s for s in _sources_from_rows(rows)}
+    result = []
+    for source in sources:
+        match = related.get((source["doc_id"],source["chunk"]))
+        # Never attach current facts to historical evidence with different text.
+        result.append({**source,"relations":match["relations"]} if match and match["content"] == source["content"] else dict(source))
+    return result
 
 
 def from_sources(sources):

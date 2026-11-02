@@ -1,4 +1,5 @@
 .knowledge-graph{margin:14px 0;border:1px solid var(--line,#e8ecf2);border-radius:12px;background:var(--surface,#fff);overflow:hidden;min-width:0;color:var(--text,#293549);font:12px/1.7 var(--font,"Segoe UI",sans-serif)}
+.chat-page .assistant-message .answer-graph{margin:14px 0 0 33px;width:calc(100% - 33px);box-sizing:border-box}
 .knowledge-graph-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line,#e8ecf2)}
 .knowledge-graph-heading strong{font-size:12px;font-weight:600}.knowledge-graph-count{font-size:10px;color:var(--muted,#7a8699);white-space:nowrap}
 .knowledge-graph-canvas{height:290px;width:100%;background:linear-gradient(135deg,#f9fbff,#fff)}.knowledge-graph-canvas[hidden]{display:none}
@@ -8,3 +9,4 @@
 .knowledge-graph-selection{padding:0 15px 13px;min-width:0}.knowledge-graph-selection-title{display:block;font-size:11px;font-weight:600;margin:5px 0 8px;overflow-wrap:anywhere}.knowledge-graph-hint{font-size:10px;color:var(--muted,#7a8699);margin:6px 0}
 .knowledge-graph-source{border-top:1px solid var(--line,#e8ecf2);padding:9px 0 3px}.knowledge-graph-source-button{border:0;background:var(--blue-soft,#edf3ff);color:var(--blue,#4179e8);border-radius:6px;padding:5px 8px;text-align:left;font-size:10px;max-width:100%;overflow-wrap:anywhere}.knowledge-graph-source-button:disabled{cursor:default}.knowledge-graph-quotation{margin:7px 0;font-size:11px;color:#71819a;white-space:pre-wrap;overflow-wrap:anywhere;max-height:150px;overflow:auto}
 @media(max-width:760px){.knowledge-graph-heading{flex-wrap:wrap;padding:10px 12px}.knowledge-graph-canvas{height:230px}.knowledge-graph-selection{padding-left:12px;padding-right:12px}.knowledge-graph-relation{font-size:10px}}
+@media(max-width:760px){.chat-page .assistant-message .answer-graph{margin-left:0;width:100%}}

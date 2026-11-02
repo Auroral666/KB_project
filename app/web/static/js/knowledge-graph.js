@@ -149,7 +149,10 @@ window.KnowledgeGraph = (() => {
       network.on("resize", () => window.requestAnimationFrame(() => {
         if (records.get(container)?.network === network) network.fit({animation: false});
       }));
-      network.once("stabilizationIterationsDone", () => network.setOptions({physics: false}));
+      network.once("stabilizationIterationsDone", () => {
+        network.setOptions({physics: false});
+        network.fit({animation: false});
+      });
     } catch (error) {
       network?.destroy();
       records.delete(container);

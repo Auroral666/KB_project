@@ -206,6 +206,28 @@ class HybridTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 rag.retrieve("林然")
 
+    def test_short_entity_query_and_seed_parameters(self):
+        with patch.object(graph,"run",return_value=[]) as query:
+            graph.search("B和谁有关系？")
+            self.assertEqual(query.call_args.kwargs["tokens"],["b"])
+            graph.search("database")
+            self.assertEqual(query.call_args.kwargs["tokens"],["database"])
+            graph.search("有哪些关系？",["a"*32])
+            self.assertEqual(query.call_args.kwargs["seeds"],["a"*32])
+
+    def test_history_restores_exact_chunk_relations_without_rewriting_storage(self):
+        row = {"subject_id":"a","subject":"A","object_id":"b","object":"B",
+               "fact":{**self.source,"id":"r","predicate":"爱","evidence":"A 爱 B"}}
+        sid,_ = workspace.save_message(None,"B和谁有关系？","A [1]",[self.source],"answered",2,1)
+        with TestClient(app) as client,patch.object(graph,"run",return_value=[row]):
+            history = client.get("/api/sessions/"+sid).json()["messages"]
+            self.assertEqual(len(graph.from_sources(history[0]["sources"])["edges"]),1)
+            changed = graph.attach_relations([{**self.source,"content":"不同历史原文"}])
+            self.assertNotIn("relations",changed[0])
+        self.assertNotIn("relations",workspace.history(sid)[0]["sources"][0])
+        with TestClient(app) as client,patch.object(graph,"run",side_effect=RuntimeError("offline")):
+            self.assertEqual(client.get("/api/sessions/"+sid).status_code,200)
+
     def test_sse_graph_and_history_share_same_evidence(self):
         workspace.add_document(self.source["doc_id"],"甲.txt",".txt",1,1)
         related = {**self.source,"relations":[{"id":"r","from":"a","to":"b","subject":"林然","object":"天枢","label":"负责"}]}
