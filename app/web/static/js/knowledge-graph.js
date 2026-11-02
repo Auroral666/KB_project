@@ -48,6 +48,7 @@ window.KnowledgeGraph = (() => {
   }
 
   function render(container, graph, onSourceClick) {
+    const collapsed = records.get(container)?.collapsed ?? false;
     prepare(container);
     if (graph?.error) {
       message(container, typeof graph.error === "string" ? graph.error : "图谱暂时不可用。", true);
@@ -65,10 +66,29 @@ window.KnowledgeGraph = (() => {
       return;
     }
 
-    const header = element("div", "knowledge-graph-heading");
+    const header = element("button", "knowledge-graph-heading");
+    header.type = "button";
+    header.setAttribute("aria-expanded", String(!collapsed));
+    const toggleLabel = element("span", "knowledge-graph-toggle", collapsed ? "展开 ▾" : "收起 ▴");
     header.append(element("strong", "", "本次回答的关系图谱"),
-      element("span", "knowledge-graph-count", `${nodes.size} 个实体 · ${edges.length} 条关系`));
-    container.append(header);
+      element("span", "knowledge-graph-count", `${nodes.size} 个实体 · ${edges.length} 条关系`),toggleLabel);
+    const body = element("div", "knowledge-graph-body");
+    body.hidden = collapsed;
+    records.set(container, {network: null, collapsed});
+    header.addEventListener("click", () => {
+      const state = records.get(container);
+      if (!state) return;
+      state.collapsed = !state.collapsed;
+      body.hidden = state.collapsed;
+      header.setAttribute("aria-expanded", String(!state.collapsed));
+      toggleLabel.textContent = state.collapsed ? "展开 ▾" : "收起 ▴";
+      if (!state.collapsed) window.requestAnimationFrame(() => {
+        if (records.get(container) !== state) return;
+        state.network?.redraw?.();
+        state.network?.fit({animation: false});
+      });
+    });
+    container.append(header,body);
     const canvas = element("div", "knowledge-graph-canvas");
     canvas.setAttribute("aria-label", "可拖动缩放的关系图；也可使用下方关系列表查看来源");
     canvas.setAttribute("role", "img");
@@ -107,11 +127,11 @@ window.KnowledgeGraph = (() => {
     });
     if (!edges.length) list.append(element("p", "knowledge-graph-hint", "暂未抽取到实体之间的关系。"));
     details.append(list);
-    container.append(canvas, details, selection);
+    body.append(canvas, details, selection);
 
     if (typeof window.vis?.Network !== "function") {
       canvas.hidden = true;
-      message(container, "图谱绘制组件未加载，可通过关系列表查看来源。", true);
+      message(body, "图谱绘制组件未加载，可通过关系列表查看来源。", true);
       details.open = true;
       return;
     }
@@ -130,7 +150,7 @@ window.KnowledgeGraph = (() => {
         physics: {stabilization: {iterations: 120}, barnesHut: {gravitationalConstant: -2800}},
         interaction: {hover: true, keyboard: false, navigationButtons: false}
       });
-      records.set(container, {network});
+      records.get(container).network = network;
       network.on("click", event => {
         // Vis may include connected edge IDs when a node is selected.
         const node = nodes.get(event.nodes?.[0]);
@@ -155,10 +175,10 @@ window.KnowledgeGraph = (() => {
       });
     } catch (error) {
       network?.destroy();
-      records.delete(container);
+      records.get(container).network = null;
       canvas.hidden = true;
       details.open = true;
-      message(container, "图谱绘制失败，可通过关系列表查看来源。", true);
+      message(body, "图谱绘制失败，可通过关系列表查看来源。", true);
     }
     selection.append(element("p", "knowledge-graph-hint", "点击实体或关系查看依据；拖动节点调整位置，滚轮缩放。"));
   }

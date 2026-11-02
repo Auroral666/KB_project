@@ -1,6 +1,7 @@
 .knowledge-graph{margin:14px 0;border:1px solid var(--line,#e8ecf2);border-radius:12px;background:var(--surface,#fff);overflow:hidden;min-width:0;color:var(--text,#293549);font:12px/1.7 var(--font,"Segoe UI",sans-serif)}
 .chat-page .assistant-message .answer-graph{margin:14px 0 0 33px;width:calc(100% - 33px);box-sizing:border-box}
 .knowledge-graph-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line,#e8ecf2)}
+.knowledge-graph-heading{width:100%;border:0;border-bottom:1px solid var(--line,#e8ecf2);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}.knowledge-graph-heading:hover{background:#f7faff}.knowledge-graph-heading:focus-visible{outline:2px solid #7d9ed9;outline-offset:-3px}.knowledge-graph-heading[aria-expanded=false]{border-bottom:0}.knowledge-graph-heading strong{margin-right:auto}.knowledge-graph-toggle{font-size:11px;color:#617fae;white-space:nowrap}.knowledge-graph-body[hidden]{display:none}
 .knowledge-graph-heading strong{font-size:12px;font-weight:600}.knowledge-graph-count{font-size:10px;color:var(--muted,#7a8699);white-space:nowrap}
 .knowledge-graph-canvas{height:290px;width:100%;background:linear-gradient(135deg,#f9fbff,#fff)}.knowledge-graph-canvas[hidden]{display:none}
 .knowledge-graph-status{padding:15px;color:var(--muted,#7a8699);font-size:11px}.knowledge-graph-status[role=alert]{color:var(--danger,#ce5363)}

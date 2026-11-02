@@ -135,4 +135,20 @@ assert.equal(historyMessage.querySelector(".answer-graph").nextElementSibling.cl
 graph.destroy(historyMessage.querySelector(".answer-graph"));
 graph.destroy(message.querySelector(".answer-graph"));
 console.log("PASS: current workspace adapter opens the correct original document; final graph replaces streamed graph without duplicate canvas");
+
+graph.render(container, fixture);
+const collapseNetwork = instances.at(-1);
+container.querySelector(".knowledge-graph-heading").click();
+assert.equal(container.querySelector(".knowledge-graph-body").hidden,true);
+assert.equal(container.querySelector(".knowledge-graph-heading").getAttribute("aria-expanded"),"false");
+assert.equal(collapseNetwork.destroyed,false);
+graph.render(container, fixture);
+assert.equal(collapseNetwork.destroyed,true);
+assert.equal(container.querySelector(".knowledge-graph-body").hidden,true,"final SSE render preserves the user's collapsed state");
+container.querySelector(".knowledge-graph-heading").click();
+assert.equal(container.querySelector(".knowledge-graph-body").hidden,false);
+assert.equal(container.querySelector(".knowledge-graph-heading").getAttribute("aria-expanded"),"true");
+assert.equal(instances.at(-1).fitOptions.animation,false,"expanding fits graph to its restored size");
+graph.destroy(container);
+console.log("PASS: graph collapse, expand, preserved state across render and restored canvas fit");
 dom.window.close();
