@@ -1,5 +1,7 @@
 """Load supported documents and preserve page-level citation metadata."""
 from pathlib import Path
+import math
+import re
 from zipfile import ZipFile
 from xml.etree import ElementTree
 
@@ -42,3 +44,26 @@ def load_chunks(path: Path):
     splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=64,
         separators=["\n\n", "\n", "。", "！", "？", ". ", " ", ""])
     return [doc for doc in splitter.split_documents(docs) if doc.page_content.strip()]
+
+
+def load_semantic_chunks(path, embeddings, threshold=0.55):
+    """Group adjacent sentences by embedding similarity, retaining page boundaries."""
+    result = []
+    for doc in load_documents(path):
+        sentences = [s for s in re.split(r"(?<=[。！？!?\n])|(?<=\.)\s+", doc.page_content) if s.strip()]
+        units = [sentence[i:i + 512] for sentence in sentences for i in range(0, len(sentence), 512)]
+        if not units:
+            continue
+        vectors = embeddings.embed_documents(units)
+        current = units[0]
+        for i in range(1, len(units)):
+            a, b = vectors[i - 1], vectors[i]
+            denom = math.sqrt(sum(x*x for x in a) * sum(x*x for x in b))
+            similarity = sum(x*y for x, y in zip(a, b)) / denom if denom else 0
+            if len(current) + len(units[i]) > 512 or similarity < threshold:
+                result.append(Document(page_content=current, metadata=dict(doc.metadata)))
+                current = units[i]
+            else:
+                current += units[i]
+        result.append(Document(page_content=current, metadata=dict(doc.metadata)))
+    return result

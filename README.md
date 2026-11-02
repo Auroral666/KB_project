@@ -4,7 +4,7 @@
 
 ## 运行
 
-双击根目录的 **`启动项目.cmd`**。完成就绪检查后访问 <http://127.0.0.1:8010>。双击 **`停止项目.cmd`** 停止服务。
+双击 **`启动_停止项目/启动项目.cmd`**。入口先启动本项目 Neo4j Docker 容器并检查连接，再启动网页；访问 <http://127.0.0.1:8010>。双击同目录 **`停止项目.cmd`** 停止网页服务。Docker Desktop 和已有 Milvus 需可用。
 
 默认继续使用已有 Python 环境：
 
@@ -17,10 +17,10 @@ F:\anaconda\anaconda3\envs\rag-env\python.exe
 也可从 PowerShell 使用兼容入口：
 
 ```powershell
-.\start.ps1
-.\stop.ps1
+.\启动_停止项目\start.ps1
+.\启动_停止项目\stop.ps1
 # 指定其他 Python 环境：
-.\start.ps1 -PythonPath '你的环境\python.exe'
+.\启动_停止项目\start.ps1 -PythonPath '你的环境\python.exe'
 ```
 
 双击入口可通过环境变量 `RAG_PYTHON` 指定 Python。自动化调用时设置 `KB_NO_PAUSE=1` 可免去结束时的按键等待。
@@ -55,8 +55,8 @@ KB_project/
 ├─ docs/                     架构及维护说明
 ├─ temp/                     临时内容、历史归档、备份、日志与测试工具
 ├─ main.py                   兼容旧启动命令的薄入口
-├─ 启动项目.cmd / 停止项目.cmd
-├─ start.ps1 / stop.ps1      PowerShell 入口
+├─ 启动_停止项目/            双击与 PowerShell 启停入口
+├─ compose.neo4j.yml         项目专属图谱容器
 ├─ .env / .env.example       本机配置 / 配置示例
 ├─ requirements.txt          实际运行依赖
 └─ LICENSE / NOTICE          许可证和上游署名
@@ -74,15 +74,19 @@ KB_project/
 
 所有指标来自本项目的真实记录。失败或未完成的回答不计入已完成问答；资料命中率不等于答案准确率。耗时包含检索与完整模型生成，首次请求还可能受模型预热影响。
 
-每个问题独立检索，同一会话用于保存记录，之前的对话不会自动加入模型上下文。文档、会话和索引存储在本机；问题和命中的资料片段发送至 `.env` 配置的模型服务生成回答。
+同一会话默认使用最近 4 轮已回答记录，将追问改写为独立问题，再并行检索 Milvus 和 Neo4j。回答仍只依据本次检索证据生成。问题、最近对话、上传文档的分块（用于关系抽取）及命中片段会发送到 `.env` 配置的模型服务；文档、会话与两种索引保存在本机。
+
+新增能力包括按相邻句向量相似度进行语义分块、带逐字依据的实体关系抽取、跨文档两跳查询、回答局部图谱和原文点击。图谱通过原有 SSE 通道返回，历史对话也可由保存的来源重建图谱。详情见 [运行与验收说明](docs/hybrid-rag.md)。
+
+上传页面使用后台任务接口，接受后立即显示任务编号，并轮询阶段或失败原因。旧 `POST /rag/create/` 同步接口保持兼容。任务持久化在 SQLite，单进程单工作线程处理，服务重启恢复未完成任务。处理中暂不能清空知识库。已有文档和会话保留；旧文档继续向量检索，不会自动补建图谱，重新上传后才使用新建库流程。
 
 ## 配置与数据
 
 现有 `.env`、`data/workspace.db` 和 `upload_files/` 均沿用原位置，整理目录不要求重新上传资料或重建索引。当前向量集合仍是 `kb_project_knowledge`。
 
-新环境从 `.env.example` 复制配置，填写模型地址、密钥、嵌入模型位置和 Milvus 连接信息；运行依赖在 `requirements.txt`，开发测试说明见 [tests/README.md](tests/README.md)。本次使用现有环境，没有更换 Python 或重新安装运行依赖。
+新环境从 `.env.example` 复制配置，填写模型地址、密钥、嵌入模型位置、Milvus 与 Neo4j 连接信息；运行依赖在 `requirements.txt`，开发测试说明见 [tests/README.md](tests/README.md)。本次沿用现有 Python 环境，仅新增 Neo4j 驱动；图谱前端使用本地 Vis Network。
 
-SQLite 会话、文档清单、上传原件和 Milvus 索引需要配套备份。`.env` 含密钥，请勿提交版本管理。上传原文件与数据库是持久数据，不放入 `temp/`。
+SQLite 会话、文档清单及任务、上传原件、Milvus 索引和 Neo4j 数据卷需要配套备份。`.env` 含密钥，请勿提交版本管理。上传原文件与数据库是持久数据，不放入 `temp/`。
 
 ## 临时内容
 
@@ -92,4 +96,4 @@ SQLite 会话、文档清单、上传原件和 Milvus 索引需要配套备份�
 
 ## 组件与许可
 
-Markdown、HTML 安全过滤和 PDF 原文预览使用本地的 Marked、DOMPurify、PDF.js，组件及许可证随 `app/web/static/vendor/` 一并保留。项目继续保留上游 Apache 2.0 的 [LICENSE](LICENSE) 与 [NOTICE](NOTICE)。
+Markdown、HTML 安全过滤、PDF 原文预览和关系图谱使用本地的 Marked、DOMPurify、PDF.js、Vis Network 9.1.9，组件及许可证随 `app/web/static/vendor/` 一并保留。项目继续保留上游 Apache 2.0 的 [LICENSE](LICENSE) 与 [NOTICE](NOTICE)。

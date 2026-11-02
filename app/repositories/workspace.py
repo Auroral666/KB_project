@@ -37,6 +37,11 @@ def initialize():
             CREATE TABLE IF NOT EXISTS sessions (
                 id TEXT PRIMARY KEY, title TEXT NOT NULL, created_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS index_jobs (
+                id TEXT PRIMARY KEY, doc_id TEXT NOT NULL, name TEXT NOT NULL,
+                extension TEXT NOT NULL, size INTEGER NOT NULL, status TEXT NOT NULL,
+                stage TEXT NOT NULL, error TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS messages (
                 id INTEGER PRIMARY KEY, session_id TEXT NOT NULL REFERENCES sessions(id),
                 question TEXT NOT NULL, answer TEXT NOT NULL, sources TEXT NOT NULL,
@@ -81,6 +86,43 @@ def history(session_id):
     with connection() as db:
         rows = db.execute("SELECT * FROM messages WHERE session_id=? ORDER BY id", (session_id,)).fetchall()
         return [decode_message(row) for row in rows]
+
+
+def recent_history(session_id, limit):
+    if not session_id or limit <= 0:
+        return []
+    with connection() as db:
+        rows = db.execute("SELECT * FROM messages WHERE session_id=? AND status='answered' ORDER BY id DESC LIMIT ?",
+                          (session_id, limit)).fetchall()
+        return [decode_message(row) for row in reversed(rows)]
+
+
+def add_job(job_id, doc_id, name, extension, size):
+    with connection() as db:
+        db.execute("INSERT INTO index_jobs VALUES (?,?,?,?,?,'queued','waiting',NULL,?,?)",
+                   (job_id, doc_id, name, extension, size, now(), now()))
+
+
+def update_job(job_id, status, stage, error=None):
+    with connection() as db:
+        db.execute("UPDATE index_jobs SET status=?,stage=?,error=?,updated_at=? WHERE id=?",
+                   (status, stage, error, now(), job_id))
+
+
+def jobs():
+    with connection() as db:
+        return [dict(r) for r in db.execute("SELECT * FROM index_jobs ORDER BY rowid DESC LIMIT 100")]
+
+
+def job(job_id):
+    with connection() as db:
+        row = db.execute("SELECT * FROM index_jobs WHERE id=?", (job_id,)).fetchone()
+        return dict(row) if row else None
+
+
+def active_jobs():
+    with connection() as db:
+        return [dict(r) for r in db.execute("SELECT * FROM index_jobs WHERE status IN ('queued','running')")]
 
 
 def decode_message(row):

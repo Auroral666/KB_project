@@ -11,7 +11,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from app.api import chat, documents, workspace
 from app.config import WEB_DIR, config
 from app.repositories import workspace as repository
-from app.services import rag
+from app.services import rag, index_jobs
 
 # Windows may register ES modules as text/plain; PDF.js requires executable JavaScript.
 mimetypes.add_type("application/javascript", ".mjs")
@@ -21,6 +21,7 @@ mimetypes.add_type("application/wasm", ".wasm")
 @asynccontextmanager
 async def lifespan(app):
     repository.initialize()
+    index_jobs.recover()
     if config.warmup_on_start and repository.documents():
         threading.Thread(target=rag.warmup, name="retrieval-warmup", daemon=True).start()
     yield

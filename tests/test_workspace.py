@@ -15,6 +15,12 @@ from app.repositories import workspace as storage
 
 class WorkspaceTests(unittest.TestCase):
     def setUp(self):
+        self.graph_config = patch.object(config, "neo4j_enabled", False)
+        self.graph_config.start()
+        self.semantic_mock = patch("app.services.rag.semantic_chunks", side_effect=load_chunks)
+        self.semantic_mock.start()
+        self.rewrite_mock = patch("app.services.rag.rewrite_question", side_effect=lambda q, h: q)
+        self.rewrite_mock.start()
         self.temp = tempfile.TemporaryDirectory()
         self.old_database, self.old_upload = config.database, config.upload_dir
         config.database = Path(self.temp.name) / "data" / "test.db"
@@ -26,6 +32,9 @@ class WorkspaceTests(unittest.TestCase):
         self.client_context.__exit__(None, None, None)
         config.database, config.upload_dir = self.old_database, self.old_upload
         self.temp.cleanup()
+        self.graph_config.stop()
+        self.semantic_mock.stop()
+        self.rewrite_mock.stop()
 
     def upload(self, name="notes.txt", content=b"Knowledge Studio document. Tail preserved."):
         with patch("app.services.rag.add_chunks") as add:
@@ -173,7 +182,7 @@ class WorkspaceTests(unittest.TestCase):
             yield "准确回答 [1]"
         with patch("app.services.rag.retrieve", return_value=(sources, 12)), patch("app.services.rag.stream_answer", side_effect=generate):
             events = self.stream_events()
-        self.assertEqual([e["type"] for e in events], ["status","sources","delta","delta","done"])
+        self.assertEqual([e["type"] for e in events], ["status","sources","graph","delta","delta","done"])
         final = events[-1]
         self.assertEqual(final["answer"], "## 结论\n\n准确回答 [1]")
         self.assertIsInstance(final["first_token_ms"], int)

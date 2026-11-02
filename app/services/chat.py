@@ -4,14 +4,15 @@ import time
 
 from app.repositories import workspace
 from app.services import rag
+from app.services.knowledge_graph import from_sources
+from app.config import config
 
 logger = logging.getLogger("kb_project")
 
 
 def _retrieve(question):
-    with rag.operation_lock:
-        if workspace.documents():
-            return rag.retrieve(question)
+    if workspace.documents():
+        return rag.retrieve(question)
     return [], 0
 
 
@@ -29,9 +30,11 @@ def _save(question, answer, sources, session_id, started, retrieval_ms, first_to
 
 def ask(question, session_id=None):
     started = time.perf_counter()
-    sources, retrieval_ms = _retrieve(question)
-    answer = rag.answer(question, sources)
-    return _save(question, answer, sources, session_id, started, retrieval_ms)
+    rewritten = rag.rewrite_question(question, workspace.recent_history(session_id, config.history_turns))
+    sources, retrieval_ms = _retrieve(rewritten)
+    answer = rag.answer(rewritten, sources)
+    return {**_save(question, answer, sources, session_id, started, retrieval_ms),
+            "rewritten_question": rewritten, "graph": from_sources(sources)}
 
 
 def stream(question, session_id=None):
@@ -41,9 +44,12 @@ def stream(question, session_id=None):
     fragments = []
     try:
         yield {"type": "status", "message": "正在检索知识库…"}
-        sources, retrieval_ms = _retrieve(question)
+        rewritten = rag.rewrite_question(question, workspace.recent_history(session_id, config.history_turns))
+        sources, retrieval_ms = _retrieve(rewritten)
         yield {"type": "sources", "sources": sources, "retrieval_ms": retrieval_ms}
-        for text in rag.stream_answer(question, sources):
+        graph = from_sources(sources)
+        yield {"type": "graph", "graph": graph, "rewritten_question": rewritten}
+        for text in rag.stream_answer(rewritten, sources):
             if not text:
                 continue
             if first_token_ms is None:
@@ -53,7 +59,7 @@ def stream(question, session_id=None):
         answer = "".join(fragments)
         if not answer:
             raise ValueError("Model returned no answer")
-        yield {"type": "done", **_save(question, answer, sources, session_id, started,
+        yield {"type": "done", "graph": graph, "rewritten_question": rewritten, **_save(question, answer, sources, session_id, started,
                                      retrieval_ms, first_token_ms)}
     except Exception:
         logger.exception("Streaming question answering failed")

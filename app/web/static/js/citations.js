@@ -187,5 +187,5 @@ window.KnowledgeSources = (() => {
     });
   }
 
-  return Object.freeze({initialize,register,enhance,references,close});
+  return Object.freeze({initialize,register,enhance,references,close,open});
 })();

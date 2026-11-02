@@ -27,6 +27,14 @@ class RagConfig:
     embedding_cpu_threads = max(1, int(os.getenv("embedding_cpu_threads", "2")))
     warmup_on_start = os.getenv("warmup_on_start", "true").lower() == "true"
     llm_thinking_enabled = os.getenv("llm_thinking_enabled", "false").lower() == "true"
+    neo4j_enabled = os.getenv("neo4j_enabled", "true").lower() == "true"
+    neo4j_uri = os.getenv("neo4j_uri", "bolt://127.0.0.1:7687")
+    neo4j_user = os.getenv("neo4j_user", "neo4j")
+    neo4j_password = os.getenv("neo4j_password", "")
+    neo4j_database = os.getenv("neo4j_database", "neo4j")
+    graph_namespace = os.getenv("graph_namespace", "kb_project_knowledge")
+    history_turns = max(0, min(10, int(os.getenv("history_turns", "4"))))
+    semantic_threshold = float(os.getenv("semantic_threshold", "0.55"))
 
 
 config = RagConfig()

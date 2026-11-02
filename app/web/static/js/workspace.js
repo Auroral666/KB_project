@@ -126,6 +126,12 @@ function appendAnswerDetails(message, record) {
   const details = document.createElement("div");
   details.className = "answer-details";
   details.innerHTML = `<div class="message-timing">${record.sources.length ? `参考 ${record.sources.length} 条原文` : "未检索到相关资料"}${record.first_token_ms != null ? ` · 首字 ${duration(record.first_token_ms)} 秒` : ""} · 总耗时 ${duration(record.duration_ms)} 秒</div>`;
+  if (record.sources.some(s => s.retrieval_warning)) {
+    const warning = document.createElement("p");
+    warning.className = "partial-answer-note";
+    warning.textContent = "部分检索服务不可用，本次使用可用证据回答。";
+    details.append(warning);
+  }
   if (record.sources.length) {
     const sources = document.createElement("div");
     sources.className = "message-sources";
@@ -136,6 +142,31 @@ function appendAnswerDetails(message, record) {
   }
   message.append(details);
   window.KnowledgeSources.register(message,record.sources);
+  renderAnswerGraph(message, record.graph || graphFromSources(record.sources), record.sources);
+}
+
+function graphFromSources(sources) {
+  const nodes = new Map(), edges = new Map();
+  for (const source of sources) for (const relation of source.relations || []) {
+    nodes.set(relation.from,{id:relation.from,label:relation.subject});
+    nodes.set(relation.to,{id:relation.to,label:relation.object});
+    edges.set(relation.id,{id:relation.id,from:relation.from,to:relation.to,label:relation.label,sources:[source]});
+  }
+  return {nodes:[...nodes.values()],edges:[...edges.values()]};
+}
+
+function renderAnswerGraph(message, graph, sources) {
+  if (!window.KnowledgeGraph) return;
+  let container = message.querySelector(".answer-graph");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "answer-graph";
+    message.append(container);
+  }
+  window.KnowledgeGraph.render(container, graph, source => {
+    const index = sources.findIndex(s => s.doc_id === source.doc_id && s.chunk === source.chunk);
+    if (index >= 0) window.KnowledgeSources.open(message,index,container);
+  });
 }
 
 async function consumeAnswerStream(question, id, onEvent) {
@@ -204,6 +235,7 @@ async function loadConversation(id) {
   sessionId = id;
   history.replaceState(null,"",`/chat?session=${id}`);
   window.KnowledgeSources.close();
+  document.querySelectorAll(".answer-graph").forEach(container => window.KnowledgeGraph?.destroy(container));
   $("#chat-messages").innerHTML = "";
   data.messages.forEach(m => { appendMessage("user",m.question); appendMessage("assistant",m.answer,m); });
   await loadSessions();
@@ -224,16 +256,23 @@ async function sendQuestion(event) {
   window.KnowledgeSources.close();
   const pending = appendMessage("assistant","");
   pending.querySelector(".message-content").innerHTML = '<span class="typing" aria-label="正在整理回答"><i></i><i></i><i></i></span>';
+  const graphPending = document.createElement("div");
+  graphPending.className = "answer-graph";
+  pending.append(graphPending);
+  window.KnowledgeGraph?.loading(graphPending);
   scrollChat();
   let answerText = "";
+  let currentSources = [];
   let lastRender = 0;
   try {
     const result = await consumeAnswerStream(question,sessionId,event => {
       if (event.type === "status") $("#composer-hint").textContent = event.message;
       if (event.type === "sources") {
+        currentSources = event.sources;
         $("#composer-hint").textContent = "正在生成回答…";
         window.KnowledgeSources.register(pending,event.sources);
       }
+      if (event.type === "graph") renderAnswerGraph(pending,event.graph,currentSources);
       if (event.type === "delta") {
         answerText += event.text;
         const now = performance.now();
@@ -251,6 +290,7 @@ async function sendQuestion(event) {
     sessionId = result.session_id;
     history.replaceState(null,"",`/chat?session=${sessionId}`);
   } catch (error) {
+    window.KnowledgeGraph?.render(graphPending,{error:"本次回答未完成，图谱结果未保存。"});
     pending.querySelector(".message-content").innerHTML = (answerText ? formatAnswer(answerText) : "") + `<div class="${answerText ? "partial-answer-note" : "error-message"}">${escapeHTML(error.message)}<br>${answerText ? "以上为未完成的回答，尚未保存。" : ""}问题已保留在输入框，可以重新发送。</div>`;
     window.KnowledgeSources.enhance(pending);
     $("#question").value = question;
@@ -263,6 +303,7 @@ async function sendQuestion(event) {
     $("#composer-hint").textContent = "Enter 发送 · Shift + Enter 换行";
     $("#question").focus();
     await loadSessions().catch(error => toast(error.message,true));
+    await refreshWorkspace().catch(error => toast(error.message,true));
     checkService();
   }
 }
@@ -307,7 +348,11 @@ async function uploadFiles(files) {
       $("#upload-label").textContent = `正在收录：${file.name}`;
       const form = new FormData();
       form.append("file",file);
-      try { const result = await api("/rag/create/",{method:"POST",body:form}); toast(result.message); }
+      try {
+        const result = await api("/api/index-jobs",{method:"POST",body:form});
+        toast(`${file.name}：已加入后台任务 ${result.task_id.slice(0,8)}`);
+        watchIndexJobs();
+      }
       catch (error) { toast(`${file.name}：${error.message}`,true); }
     }
   } finally {
@@ -318,6 +363,31 @@ async function uploadFiles(files) {
     await refreshWorkspace().catch(error => toast(error.message,true));
     checkService();
   }
+}
+
+let jobTimer = null;
+const notifiedJobs = new Set();
+async function watchIndexJobs() {
+  clearTimeout(jobTimer);
+  try {
+    const {jobs} = await api("/api/index-jobs");
+    let panel = $("#index-jobs");
+    if (!panel && jobs.length) {
+      panel = document.createElement("section");
+      panel.id = "index-jobs";
+      panel.className = "panel";
+      $(".page-content").append(panel);
+    }
+    const stages = {waiting:"等待处理",semantic_chunking:"语义分块",extracting_relations:"抽取实体关系",writing_vectors:"写入向量",writing_graph:"写入图谱",complete:"完成",failed:"失败"};
+    if (panel) panel.innerHTML = '<div class="panel-heading"><h2>后台建库任务</h2></div>' + jobs.slice(0,10).map(job => `<div class="document-row"><strong>${escapeHTML(job.name)}</strong><span>${escapeHTML(stages[job.stage] || job.stage)}</span><small>任务 ${escapeHTML(job.id.slice(0,8))}${job.error ? ` · ${escapeHTML(job.error)}` : ""}</small></div>`).join("");
+    for (const job of jobs) if (["succeeded","failed"].includes(job.status) && !notifiedJobs.has(job.id)) {
+      notifiedJobs.add(job.id);
+      if (job.status === "failed") toast(`${job.name}：${job.error}`,true);
+    }
+    const active = jobs.some(j => ["queued","running"].includes(j.status));
+    if (active) jobTimer = setTimeout(watchIndexJobs,2000);
+    await refreshWorkspace();
+  } catch (error) { toast(error.message,true); }
 }
 
 async function refreshWorkspace() {
@@ -335,9 +405,10 @@ async function refreshWorkspace() {
 async function checkService() {
   try {
     const state = await api("/api/status");
-    const connected = state.database && state.model_configured;
+    const graphOffline = state.graph?.enabled && !state.graph.connected;
+    const connected = state.database && state.model_configured && !graphOffline;
     $("#service-dot").classList.toggle("offline",!connected);
-    $("#service-label").textContent = !state.database ? "向量服务暂未连接" : state.warming ? "正在准备检索模型" : !state.model_configured ? "请配置问答模型" : "知识服务已连接";
+    $("#service-label").textContent = !state.database ? "向量服务暂未连接" : graphOffline ? "图谱服务暂未连接" : state.warming ? "正在准备检索模型" : !state.model_configured ? "请配置问答模型" : "知识服务已连接";
     if (state.warming) setTimeout(checkService,2000);
   } catch {
     $("#service-dot").classList.add("offline");
@@ -368,9 +439,15 @@ async function initialize() {
     $("#chat-form").addEventListener("submit",sendQuestion);
     $("#question").addEventListener("keydown",event => { if (event.key === "Enter" && !event.shiftKey && !event.isComposing) { event.preventDefault(); $("#chat-form").requestSubmit(); } });
     document.querySelectorAll("[data-prompt]").forEach(button => button.addEventListener("click", () => { $("#question").value = button.dataset.prompt; $("#question").focus(); }));
-    $("#new-chat").addEventListener("click", () => { if (!sending) location.href = "/chat"; });
+    $("#new-chat").addEventListener("click", () => {
+      if (!sending) {
+        document.querySelectorAll(".answer-graph").forEach(container => window.KnowledgeGraph?.destroy(container));
+        location.href = "/chat";
+      }
+    });
   }
   await Promise.all([refreshWorkspace(),checkService()]);
+  if (page === "/knowledge" || page === "/") await watchIndexJobs();
   if (page === "/chat") {
     await loadSessions();
     if (sessionId) await loadConversation(sessionId);

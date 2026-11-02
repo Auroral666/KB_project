@@ -2,7 +2,7 @@
 chcp 65001 >nul
 setlocal
 REM ========== 1. 定位项目和 Python 环境 ==========
-pushd "%~dp0"
+pushd "%~dp0.."
 if not defined RAG_PYTHON set "RAG_PYTHON=F:\anaconda\anaconda3\envs\rag-env\python.exe"
 if not exist "%RAG_PYTHON%" (
     echo 未找到 Python 环境，请设置 RAG_PYTHON 后重试。

@@ -6,10 +6,39 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
 from app.repositories import workspace
-from app.services import documents
+from app.services import documents, index_jobs
 
 router = APIRouter()
 logger = logging.getLogger("kb_project")
+
+
+@router.post("/api/index-jobs", status_code=202)
+def enqueue(file: UploadFile = File(...)):
+    try:
+        job = index_jobs.submit(file.filename, file.file)
+        return {"task_id": job["id"], "job": job}
+    except documents.UploadTooLargeError as exc:
+        raise HTTPException(413, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Could not submit indexing job")
+        raise HTTPException(503, "暂时无法创建建库任务，请检查存储和服务日志。") from exc
+    finally:
+        file.file.close()
+
+
+@router.get("/api/index-jobs")
+def list_jobs():
+    return {"jobs": workspace.jobs()}
+
+
+@router.get("/api/index-jobs/{job_id}")
+def get_job(job_id: str):
+    job = workspace.job(job_id)
+    if not job:
+        raise HTTPException(404, "建库任务不存在。")
+    return {"job": job}
 
 
 @router.get("/api/documents")
@@ -72,8 +101,13 @@ def remove(doc_id: str):
 @router.post("/rag/clear/")
 def clear():
     try:
-        documents.clear()
+        with index_jobs.submission_lock:
+            if workspace.active_jobs():
+                raise HTTPException(409, "仍有建库任务处理中，请完成后再清空。")
+            documents.clear()
         return {"message": "当前工作台知识库已清空，对话记录已保留。"}
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.exception("Knowledge reset failed")
         raise HTTPException(503, "清空失败，请检查向量服务后重试。") from exc

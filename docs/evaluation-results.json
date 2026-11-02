@@ -1,0 +1,2286 @@
+{
+  "run_id": "kb_eval_ffade80b1e04",
+  "started_at": "2026-11-02T07:20:46.915635+00:00",
+  "model": "deepseek-v4-flash",
+  "embedding": "jinaai/jina-embeddings-v3",
+  "scoring": "关键词及实际引用文件覆盖校验；不等于人工评审准确率。",
+  "summary": {
+    "vector": {
+      "count": 12,
+      "correct_keywords": 11,
+      "citation_coverage": 11,
+      "mean_ms": 2579,
+      "correct_rule": 10,
+      "reviewed_correct": 10
+    },
+    "hybrid": {
+      "count": 12,
+      "correct_keywords": 12,
+      "citation_coverage": 12,
+      "mean_ms": 2844,
+      "correct_rule": 12,
+      "reviewed_correct": 12
+    }
+  },
+  "integration": {
+    "sse_graph": true,
+    "original": true,
+    "delete": true
+  },
+  "cleanup_errors": [],
+  "finished_at": "2026-11-02T07:24:36.558921+00:00",
+  "review_notes": [
+    "逐条核对24条回答。向量基线第8条缺失跨文档证据，第10条未消解指代；混合流程12条符合预期。",
+    "最初关键词规则把第10条基线列举数据库误计为正确，已按指代不明拒绝词补正；保留correct_keywords原值供审计，使用correct_rule和manual_correct。",
+    "本次最初运行脚本未单独计量向量基线retrieval_ms，已移除该未测值；elapsed_ms和duration_ms均为真实总耗时。复现脚本现已补齐单独计量。",
+    "小样本合成文档对照，不代表真实文档上的统计准确率。必要引用文件覆盖不等同于逐句蕴含评审。"
+  ],
+  "cases": [
+    {
+      "id": 1,
+      "mode": "vector",
+      "question": "林然负责哪个项目？",
+      "expected": [
+        "天枢"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2598,
+      "answer": "林然负责天枢项目。[1]",
+      "sources": [
+        {
+          "name": "01-负责人.txt",
+          "doc_id": "bc688fc552544f8aa30dd2b26ab179a1",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.4392,
+          "content": "林然负责天枢项目。"
+        },
+        {
+          "name": "10-晨曦负责人.txt",
+          "doc_id": "375d7309ef64457b8e7127ca816bc254",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0922,
+          "content": "钱禾负责晨曦项目。"
+        },
+        {
+          "name": "04-海隼负责人.txt",
+          "doc_id": "181faeb7ccc641d7bb7e49933553fc4e",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.1656,
+          "content": "周宁负责海隼项目。"
+        },
+        {
+          "name": "12-流萤负责人.txt",
+          "doc_id": "5f0130784ddd4137b7f676ed63edc742",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.1659,
+          "content": "苏禾负责流萤项目。"
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.416,
+          "content": "晨曦项目使用青岚数据库。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2581,
+      "rewritten_question": "林然负责哪个项目？",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 1,
+      "mode": "hybrid",
+      "question": "林然负责哪个项目？",
+      "expected": [
+        "天枢"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 3170,
+      "answer": "林然负责天枢项目。[1]",
+      "sources": [
+        {
+          "name": "01-负责人.txt",
+          "doc_id": "bc688fc552544f8aa30dd2b26ab179a1",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.4392,
+          "content": "林然负责天枢项目。",
+          "relations": [
+            {
+              "id": "9c38c6409aff3918e64075a1fd769bd5ef91a8bca80b989030aecb7c201b999a",
+              "from": "林然",
+              "to": "天枢项目",
+              "subject": "林然",
+              "object": "天枢项目",
+              "label": "负责",
+              "evidence": "林然负责天枢项目。"
+            }
+          ]
+        },
+        {
+          "name": "10-晨曦负责人.txt",
+          "doc_id": "375d7309ef64457b8e7127ca816bc254",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0922,
+          "content": "钱禾负责晨曦项目。"
+        },
+        {
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "name": "02-天枢技术.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "天枢项目使用青岚数据库。",
+          "relations": [
+            {
+              "id": "2d6a03459364d3cd3f75a076b035d224dc10436839d0159018a2cd66bcfcdd9e",
+              "from": "天枢项目",
+              "to": "青岚数据库",
+              "subject": "天枢项目",
+              "object": "青岚数据库",
+              "label": "使用",
+              "evidence": "天枢项目使用青岚数据库。"
+            }
+          ]
+        },
+        {
+          "name": "04-海隼负责人.txt",
+          "doc_id": "181faeb7ccc641d7bb7e49933553fc4e",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.1656,
+          "content": "周宁负责海隼项目。"
+        },
+        {
+          "doc_id": "34b03a9f1ad54a77bdf16b6eb7e02a95",
+          "name": "07-预算.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "天枢项目的试运行预算为1750万元。",
+          "relations": [
+            {
+              "id": "bdf611ccb188cd86bd670905449da5fc385ef22857edd84434bd124647d2ee46",
+              "from": "天枢项目",
+              "to": "1750万元",
+              "subject": "天枢项目",
+              "object": "1750万元",
+              "label": "试运行预算为",
+              "evidence": "天枢项目的试运行预算为1750万元。"
+            }
+          ]
+        },
+        {
+          "name": "12-流萤负责人.txt",
+          "doc_id": "5f0130784ddd4137b7f676ed63edc742",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.1659,
+          "content": "苏禾负责流萤项目。"
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.416,
+          "content": "晨曦项目使用青岚数据库。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 3151,
+      "retrieval_ms": 2449,
+      "rewritten_question": "林然负责哪个项目？",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 2,
+      "mode": "vector",
+      "question": "青岚数据库由谁维护？",
+      "expected": [
+        "远川科技"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2288,
+      "answer": "青岚数据库由远川科技维护。[1]",
+      "sources": [
+        {
+          "name": "03-青岚维护.txt",
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.2218,
+          "content": "青岚数据库由远川科技维护。"
+        },
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.6476,
+          "content": "天枢项目使用青岚数据库。"
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.6999,
+          "content": "晨曦项目使用青岚数据库。"
+        },
+        {
+          "name": "06-墨石维护.txt",
+          "doc_id": "25192a1b23964d08b1f11f157ae6baa8",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0732,
+          "content": "墨石数据库由北辰实验室维护。"
+        },
+        {
+          "name": "05-海隼技术.txt",
+          "doc_id": "bb755bb88f8d4fc3ac83e21cb6dcc78d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.1146,
+          "content": "海隼项目使用墨石数据库。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2270,
+      "rewritten_question": "青岚数据库由谁维护？",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 2,
+      "mode": "hybrid",
+      "question": "青岚数据库由谁维护？",
+      "expected": [
+        "远川科技"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2862,
+      "answer": "青岚数据库由远川科技维护。[2]",
+      "sources": [
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.6476,
+          "content": "天枢项目使用青岚数据库。",
+          "relations": [
+            {
+              "id": "2d6a03459364d3cd3f75a076b035d224dc10436839d0159018a2cd66bcfcdd9e",
+              "from": "天枢项目",
+              "to": "青岚数据库",
+              "subject": "天枢项目",
+              "object": "青岚数据库",
+              "label": "使用",
+              "evidence": "天枢项目使用青岚数据库。"
+            }
+          ]
+        },
+        {
+          "name": "03-青岚维护.txt",
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.2218,
+          "content": "青岚数据库由远川科技维护。",
+          "relations": [
+            {
+              "id": "fb4d65dc292fae67aa9863a8ec92011046364103778198f9e8db87a3aa6b3fcb",
+              "from": "青岚数据库",
+              "to": "远川科技",
+              "subject": "青岚数据库",
+              "object": "远川科技",
+              "label": "维护方",
+              "evidence": "青岚数据库由远川科技维护。"
+            }
+          ]
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.6999,
+          "content": "晨曦项目使用青岚数据库。",
+          "relations": [
+            {
+              "id": "33a5981aa6c1529c68da27e48081ec4c171a0957c607f02e5e008a42a0fcbea7",
+              "from": "晨曦项目",
+              "to": "青岚数据库",
+              "subject": "晨曦项目",
+              "object": "青岚数据库",
+              "label": "使用",
+              "evidence": "晨曦项目使用青岚数据库。"
+            }
+          ]
+        },
+        {
+          "doc_id": "bc688fc552544f8aa30dd2b26ab179a1",
+          "name": "01-负责人.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "林然负责天枢项目。",
+          "relations": [
+            {
+              "id": "9c38c6409aff3918e64075a1fd769bd5ef91a8bca80b989030aecb7c201b999a",
+              "from": "林然",
+              "to": "天枢项目",
+              "subject": "林然",
+              "object": "天枢项目",
+              "label": "负责",
+              "evidence": "林然负责天枢项目。"
+            }
+          ]
+        },
+        {
+          "doc_id": "34b03a9f1ad54a77bdf16b6eb7e02a95",
+          "name": "07-预算.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "天枢项目的试运行预算为1750万元。",
+          "relations": [
+            {
+              "id": "bdf611ccb188cd86bd670905449da5fc385ef22857edd84434bd124647d2ee46",
+              "from": "天枢项目",
+              "to": "1750万元",
+              "subject": "天枢项目",
+              "object": "1750万元",
+              "label": "试运行预算为",
+              "evidence": "天枢项目的试运行预算为1750万元。"
+            }
+          ]
+        },
+        {
+          "name": "06-墨石维护.txt",
+          "doc_id": "25192a1b23964d08b1f11f157ae6baa8",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0732,
+          "content": "墨石数据库由北辰实验室维护。"
+        },
+        {
+          "name": "05-海隼技术.txt",
+          "doc_id": "bb755bb88f8d4fc3ac83e21cb6dcc78d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.1146,
+          "content": "海隼项目使用墨石数据库。"
+        },
+        {
+          "doc_id": "375d7309ef64457b8e7127ca816bc254",
+          "name": "10-晨曦负责人.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "钱禾负责晨曦项目。",
+          "relations": [
+            {
+              "id": "260a0c01bad00fefb0865474fb8b867444991b24085ec08e0887c600813d8bd9",
+              "from": "钱禾",
+              "to": "晨曦项目",
+              "subject": "钱禾",
+              "object": "晨曦项目",
+              "label": "负责",
+              "evidence": "钱禾负责晨曦项目。"
+            }
+          ]
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2843,
+      "retrieval_ms": 1735,
+      "rewritten_question": "青岚数据库由谁维护？",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 3,
+      "mode": "vector",
+      "question": "天枢项目的试运行预算是多少？",
+      "expected": [
+        "1750"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2883,
+      "answer": "天枢项目的试运行预算为1750万元。[1]",
+      "sources": [
+        {
+          "name": "07-预算.txt",
+          "doc_id": "34b03a9f1ad54a77bdf16b6eb7e02a95",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.1111,
+          "content": "天枢项目的试运行预算为1750万元。"
+        },
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.8292,
+          "content": "天枢项目使用青岚数据库。"
+        },
+        {
+          "name": "01-负责人.txt",
+          "doc_id": "bc688fc552544f8aa30dd2b26ab179a1",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9271,
+          "content": "林然负责天枢项目。"
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.2739,
+          "content": "晨曦项目使用青岚数据库。"
+        },
+        {
+          "name": "10-晨曦负责人.txt",
+          "doc_id": "375d7309ef64457b8e7127ca816bc254",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.2935,
+          "content": "钱禾负责晨曦项目。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2866,
+      "rewritten_question": "天枢项目的试运行预算是多少？",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 3,
+      "mode": "hybrid",
+      "question": "天枢项目的试运行预算是多少？",
+      "expected": [
+        "1750"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2317,
+      "answer": "天枢项目的试运行预算为1750万元。[3]",
+      "sources": [
+        {
+          "name": "01-负责人.txt",
+          "doc_id": "bc688fc552544f8aa30dd2b26ab179a1",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9271,
+          "content": "林然负责天枢项目。",
+          "relations": [
+            {
+              "id": "9c38c6409aff3918e64075a1fd769bd5ef91a8bca80b989030aecb7c201b999a",
+              "from": "林然",
+              "to": "天枢项目",
+              "subject": "林然",
+              "object": "天枢项目",
+              "label": "负责",
+              "evidence": "林然负责天枢项目。"
+            }
+          ]
+        },
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.8292,
+          "content": "天枢项目使用青岚数据库。",
+          "relations": [
+            {
+              "id": "2d6a03459364d3cd3f75a076b035d224dc10436839d0159018a2cd66bcfcdd9e",
+              "from": "天枢项目",
+              "to": "青岚数据库",
+              "subject": "天枢项目",
+              "object": "青岚数据库",
+              "label": "使用",
+              "evidence": "天枢项目使用青岚数据库。"
+            }
+          ]
+        },
+        {
+          "name": "07-预算.txt",
+          "doc_id": "34b03a9f1ad54a77bdf16b6eb7e02a95",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.1111,
+          "content": "天枢项目的试运行预算为1750万元。",
+          "relations": [
+            {
+              "id": "bdf611ccb188cd86bd670905449da5fc385ef22857edd84434bd124647d2ee46",
+              "from": "天枢项目",
+              "to": "1750万元",
+              "subject": "天枢项目",
+              "object": "1750万元",
+              "label": "试运行预算为",
+              "evidence": "天枢项目的试运行预算为1750万元。"
+            }
+          ]
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.2739,
+          "content": "晨曦项目使用青岚数据库。",
+          "relations": [
+            {
+              "id": "33a5981aa6c1529c68da27e48081ec4c171a0957c607f02e5e008a42a0fcbea7",
+              "from": "晨曦项目",
+              "to": "青岚数据库",
+              "subject": "晨曦项目",
+              "object": "青岚数据库",
+              "label": "使用",
+              "evidence": "晨曦项目使用青岚数据库。"
+            }
+          ]
+        },
+        {
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "name": "03-青岚维护.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "青岚数据库由远川科技维护。",
+          "relations": [
+            {
+              "id": "fb4d65dc292fae67aa9863a8ec92011046364103778198f9e8db87a3aa6b3fcb",
+              "from": "青岚数据库",
+              "to": "远川科技",
+              "subject": "青岚数据库",
+              "object": "远川科技",
+              "label": "维护方",
+              "evidence": "青岚数据库由远川科技维护。"
+            }
+          ]
+        },
+        {
+          "name": "10-晨曦负责人.txt",
+          "doc_id": "375d7309ef64457b8e7127ca816bc254",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.2935,
+          "content": "钱禾负责晨曦项目。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2290,
+      "retrieval_ms": 1451,
+      "rewritten_question": "天枢项目的试运行预算是多少？",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 4,
+      "mode": "vector",
+      "question": "海隼项目何时上线？",
+      "expected": [
+        "2026",
+        "12",
+        "20"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2118,
+      "answer": "海隼项目上线日期为2026年12月20日。[1]",
+      "sources": [
+        {
+          "name": "08-日期.txt",
+          "doc_id": "a9a4d9c556d04e879d74c9bd4f435c09",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.1996,
+          "content": "海隼项目的上线日期为2026年12月20日。"
+        },
+        {
+          "name": "04-海隼负责人.txt",
+          "doc_id": "181faeb7ccc641d7bb7e49933553fc4e",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.6836,
+          "content": "周宁负责海隼项目。"
+        },
+        {
+          "name": "05-海隼技术.txt",
+          "doc_id": "bb755bb88f8d4fc3ac83e21cb6dcc78d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.7016,
+          "content": "海隼项目使用墨石数据库。"
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.215,
+          "content": "晨曦项目使用青岚数据库。"
+        },
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.231,
+          "content": "天枢项目使用青岚数据库。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2100,
+      "rewritten_question": "海隼项目何时上线？",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 4,
+      "mode": "hybrid",
+      "question": "海隼项目何时上线？",
+      "expected": [
+        "2026",
+        "12",
+        "20"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2547,
+      "answer": "海隼项目的上线日期为2026年12月20日。[3]",
+      "sources": [
+        {
+          "name": "04-海隼负责人.txt",
+          "doc_id": "181faeb7ccc641d7bb7e49933553fc4e",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.6836,
+          "content": "周宁负责海隼项目。",
+          "relations": [
+            {
+              "id": "4e4dab4c2ef4b795496a700e5e21f41d84b1c5f0f665d55a0e766c0fa0408da6",
+              "from": "周宁",
+              "to": "海隼项目",
+              "subject": "周宁",
+              "object": "海隼项目",
+              "label": "负责",
+              "evidence": "周宁负责海隼项目。"
+            }
+          ]
+        },
+        {
+          "name": "05-海隼技术.txt",
+          "doc_id": "bb755bb88f8d4fc3ac83e21cb6dcc78d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.7016,
+          "content": "海隼项目使用墨石数据库。",
+          "relations": [
+            {
+              "id": "c80eaeebab54cf5b7a07c004dae68643537ae05732fd84f1a85c24ffed24276f",
+              "from": "海隼项目",
+              "to": "墨石数据库",
+              "subject": "海隼项目",
+              "object": "墨石数据库",
+              "label": "使用",
+              "evidence": "海隼项目使用墨石数据库。"
+            }
+          ]
+        },
+        {
+          "name": "08-日期.txt",
+          "doc_id": "a9a4d9c556d04e879d74c9bd4f435c09",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.1996,
+          "content": "海隼项目的上线日期为2026年12月20日。",
+          "relations": [
+            {
+              "id": "2d59cbbce0ea59710a6729ae6e7d7af039f236de2f3917e53a8520289ccef547",
+              "from": "海隼项目",
+              "to": "2026年12月20日",
+              "subject": "海隼项目",
+              "object": "2026年12月20日",
+              "label": "上线日期为",
+              "evidence": "海隼项目的上线日期为2026年12月20日。"
+            }
+          ]
+        },
+        {
+          "doc_id": "25192a1b23964d08b1f11f157ae6baa8",
+          "name": "06-墨石维护.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "墨石数据库由北辰实验室维护。",
+          "relations": [
+            {
+              "id": "000075b608198303670cd8f4f855c153c42c02abef147e681d6cb9c57b39c7a9",
+              "from": "墨石数据库",
+              "to": "北辰实验室",
+              "subject": "墨石数据库",
+              "object": "北辰实验室",
+              "label": "维护",
+              "evidence": "墨石数据库由北辰实验室维护。"
+            }
+          ]
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.215,
+          "content": "晨曦项目使用青岚数据库。"
+        },
+        {
+          "doc_id": "01c08a5e7eb147b5b477c35eb9c48b7d",
+          "name": "11-流萤技术.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "流萤项目使用墨石数据库。",
+          "relations": [
+            {
+              "id": "ec9bf59175fbf2c6e2aeceaec762f44b53022dbc226d887a5f27dd459307c558",
+              "from": "流萤项目",
+              "to": "墨石数据库",
+              "subject": "流萤项目",
+              "object": "墨石数据库",
+              "label": "使用",
+              "evidence": "流萤项目使用墨石数据库。"
+            }
+          ]
+        },
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.231,
+          "content": "天枢项目使用青岚数据库。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2529,
+      "retrieval_ms": 1921,
+      "rewritten_question": "海隼项目何时上线？",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 5,
+      "mode": "vector",
+      "question": "林然负责的项目使用什么数据库？请说明关系链。",
+      "expected": [
+        "天枢",
+        "青岚"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2386,
+      "answer": "林然负责天枢项目[1]；天枢项目使用青岚数据库[3]。因此，林然负责的项目使用**青岚数据库**。关系链：林然 → 天枢项目 → 青岚数据库。",
+      "sources": [
+        {
+          "name": "01-负责人.txt",
+          "doc_id": "bc688fc552544f8aa30dd2b26ab179a1",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.7781,
+          "content": "林然负责天枢项目。"
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9247,
+          "content": "晨曦项目使用青岚数据库。"
+        },
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9683,
+          "content": "天枢项目使用青岚数据库。"
+        },
+        {
+          "name": "03-青岚维护.txt",
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0758,
+          "content": "青岚数据库由远川科技维护。"
+        },
+        {
+          "name": "11-流萤技术.txt",
+          "doc_id": "01c08a5e7eb147b5b477c35eb9c48b7d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.1139,
+          "content": "流萤项目使用墨石数据库。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2371,
+      "rewritten_question": "林然负责的项目使用什么数据库？请说明关系链。",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 5,
+      "mode": "hybrid",
+      "question": "林然负责的项目使用什么数据库？请说明关系链。",
+      "expected": [
+        "天枢",
+        "青岚"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2348,
+      "answer": "林然负责天枢项目 [1]；天枢项目使用青岚数据库 [2]。因此，林然负责的项目使用**青岚数据库**。关系链：林然 → 天枢项目 → 青岚数据库。",
+      "sources": [
+        {
+          "name": "01-负责人.txt",
+          "doc_id": "bc688fc552544f8aa30dd2b26ab179a1",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.7781,
+          "content": "林然负责天枢项目。",
+          "relations": [
+            {
+              "id": "9c38c6409aff3918e64075a1fd769bd5ef91a8bca80b989030aecb7c201b999a",
+              "from": "林然",
+              "to": "天枢项目",
+              "subject": "林然",
+              "object": "天枢项目",
+              "label": "负责",
+              "evidence": "林然负责天枢项目。"
+            }
+          ]
+        },
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9683,
+          "content": "天枢项目使用青岚数据库。",
+          "relations": [
+            {
+              "id": "2d6a03459364d3cd3f75a076b035d224dc10436839d0159018a2cd66bcfcdd9e",
+              "from": "天枢项目",
+              "to": "青岚数据库",
+              "subject": "天枢项目",
+              "object": "青岚数据库",
+              "label": "使用",
+              "evidence": "天枢项目使用青岚数据库。"
+            }
+          ]
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9247,
+          "content": "晨曦项目使用青岚数据库。"
+        },
+        {
+          "doc_id": "34b03a9f1ad54a77bdf16b6eb7e02a95",
+          "name": "07-预算.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "天枢项目的试运行预算为1750万元。",
+          "relations": [
+            {
+              "id": "bdf611ccb188cd86bd670905449da5fc385ef22857edd84434bd124647d2ee46",
+              "from": "天枢项目",
+              "to": "1750万元",
+              "subject": "天枢项目",
+              "object": "1750万元",
+              "label": "试运行预算为",
+              "evidence": "天枢项目的试运行预算为1750万元。"
+            }
+          ]
+        },
+        {
+          "name": "03-青岚维护.txt",
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0758,
+          "content": "青岚数据库由远川科技维护。"
+        },
+        {
+          "name": "11-流萤技术.txt",
+          "doc_id": "01c08a5e7eb147b5b477c35eb9c48b7d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.1139,
+          "content": "流萤项目使用墨石数据库。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2329,
+      "retrieval_ms": 1284,
+      "rewritten_question": "林然负责的项目使用什么数据库？请说明关系链。",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 6,
+      "mode": "vector",
+      "question": "周宁负责的项目使用什么数据库？请说明关系链。",
+      "expected": [
+        "海隼",
+        "墨石"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2520,
+      "answer": "周宁负责海隼项目 [1]；海隼项目使用墨石数据库 [5]。因此，周宁负责的项目使用**墨石数据库**。关系链：周宁 → 海隼项目 → 墨石数据库。",
+      "sources": [
+        {
+          "name": "04-海隼负责人.txt",
+          "doc_id": "181faeb7ccc641d7bb7e49933553fc4e",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.7402,
+          "content": "周宁负责海隼项目。"
+        },
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9854,
+          "content": "天枢项目使用青岚数据库。"
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0263,
+          "content": "晨曦项目使用青岚数据库。"
+        },
+        {
+          "name": "03-青岚维护.txt",
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.164,
+          "content": "青岚数据库由远川科技维护。"
+        },
+        {
+          "name": "05-海隼技术.txt",
+          "doc_id": "bb755bb88f8d4fc3ac83e21cb6dcc78d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.22,
+          "content": "海隼项目使用墨石数据库。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2502,
+      "rewritten_question": "周宁负责的项目使用什么数据库？请说明关系链。",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 6,
+      "mode": "hybrid",
+      "question": "周宁负责的项目使用什么数据库？请说明关系链。",
+      "expected": [
+        "海隼",
+        "墨石"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2348,
+      "answer": "周宁负责海隼项目 [1]，海隼项目使用墨石数据库 [2]。关系链：周宁 → 海隼项目 → 墨石数据库。",
+      "sources": [
+        {
+          "name": "04-海隼负责人.txt",
+          "doc_id": "181faeb7ccc641d7bb7e49933553fc4e",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.7402,
+          "content": "周宁负责海隼项目。",
+          "relations": [
+            {
+              "id": "4e4dab4c2ef4b795496a700e5e21f41d84b1c5f0f665d55a0e766c0fa0408da6",
+              "from": "周宁",
+              "to": "海隼项目",
+              "subject": "周宁",
+              "object": "海隼项目",
+              "label": "负责",
+              "evidence": "周宁负责海隼项目。"
+            }
+          ]
+        },
+        {
+          "name": "05-海隼技术.txt",
+          "doc_id": "bb755bb88f8d4fc3ac83e21cb6dcc78d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.22,
+          "content": "海隼项目使用墨石数据库。",
+          "relations": [
+            {
+              "id": "c80eaeebab54cf5b7a07c004dae68643537ae05732fd84f1a85c24ffed24276f",
+              "from": "海隼项目",
+              "to": "墨石数据库",
+              "subject": "海隼项目",
+              "object": "墨石数据库",
+              "label": "使用",
+              "evidence": "海隼项目使用墨石数据库。"
+            }
+          ]
+        },
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9854,
+          "content": "天枢项目使用青岚数据库。"
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0263,
+          "content": "晨曦项目使用青岚数据库。"
+        },
+        {
+          "doc_id": "a9a4d9c556d04e879d74c9bd4f435c09",
+          "name": "08-日期.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "海隼项目的上线日期为2026年12月20日。",
+          "relations": [
+            {
+              "id": "2d59cbbce0ea59710a6729ae6e7d7af039f236de2f3917e53a8520289ccef547",
+              "from": "海隼项目",
+              "to": "2026年12月20日",
+              "subject": "海隼项目",
+              "object": "2026年12月20日",
+              "label": "上线日期为",
+              "evidence": "海隼项目的上线日期为2026年12月20日。"
+            }
+          ]
+        },
+        {
+          "name": "03-青岚维护.txt",
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.164,
+          "content": "青岚数据库由远川科技维护。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2329,
+      "retrieval_ms": 1349,
+      "rewritten_question": "周宁负责的项目使用什么数据库？请说明关系链。",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 7,
+      "mode": "vector",
+      "question": "钱禾负责的项目使用什么数据库？请说明关系链。",
+      "expected": [
+        "晨曦",
+        "青岚"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 3185,
+      "answer": "钱禾负责晨曦项目 [1]；晨曦项目使用青岚数据库 [3]。因此，钱禾负责的项目使用**青岚数据库**。关系链：钱禾 → 晨曦项目 → 青岚数据库 [1][3]。",
+      "sources": [
+        {
+          "name": "10-晨曦负责人.txt",
+          "doc_id": "375d7309ef64457b8e7127ca816bc254",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.7636,
+          "content": "钱禾负责晨曦项目。"
+        },
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.8723,
+          "content": "天枢项目使用青岚数据库。"
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.979,
+          "content": "晨曦项目使用青岚数据库。"
+        },
+        {
+          "name": "03-青岚维护.txt",
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0741,
+          "content": "青岚数据库由远川科技维护。"
+        },
+        {
+          "name": "12-流萤负责人.txt",
+          "doc_id": "5f0130784ddd4137b7f676ed63edc742",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.1646,
+          "content": "苏禾负责流萤项目。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 3166,
+      "rewritten_question": "钱禾负责的项目使用什么数据库？请说明关系链。",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 7,
+      "mode": "hybrid",
+      "question": "钱禾负责的项目使用什么数据库？请说明关系链。",
+      "expected": [
+        "晨曦",
+        "青岚"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2658,
+      "answer": "钱禾负责晨曦项目 [1]，晨曦项目使用青岚数据库 [2]，因此钱禾负责的项目使用**青岚数据库**。\n\n关系链：钱禾 → 晨曦项目 → 青岚数据库 [1][2]。",
+      "sources": [
+        {
+          "name": "10-晨曦负责人.txt",
+          "doc_id": "375d7309ef64457b8e7127ca816bc254",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.7636,
+          "content": "钱禾负责晨曦项目。",
+          "relations": [
+            {
+              "id": "260a0c01bad00fefb0865474fb8b867444991b24085ec08e0887c600813d8bd9",
+              "from": "钱禾",
+              "to": "晨曦项目",
+              "subject": "钱禾",
+              "object": "晨曦项目",
+              "label": "负责",
+              "evidence": "钱禾负责晨曦项目。"
+            }
+          ]
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.979,
+          "content": "晨曦项目使用青岚数据库。",
+          "relations": [
+            {
+              "id": "33a5981aa6c1529c68da27e48081ec4c171a0957c607f02e5e008a42a0fcbea7",
+              "from": "晨曦项目",
+              "to": "青岚数据库",
+              "subject": "晨曦项目",
+              "object": "青岚数据库",
+              "label": "使用",
+              "evidence": "晨曦项目使用青岚数据库。"
+            }
+          ]
+        },
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.8723,
+          "content": "天枢项目使用青岚数据库。"
+        },
+        {
+          "name": "03-青岚维护.txt",
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0741,
+          "content": "青岚数据库由远川科技维护。"
+        },
+        {
+          "name": "12-流萤负责人.txt",
+          "doc_id": "5f0130784ddd4137b7f676ed63edc742",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.1646,
+          "content": "苏禾负责流萤项目。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2638,
+      "retrieval_ms": 1487,
+      "rewritten_question": "钱禾负责的项目使用什么数据库？请说明关系链。",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 8,
+      "mode": "vector",
+      "question": "苏禾负责的项目使用什么数据库？请说明关系链。",
+      "expected": [
+        "流萤",
+        "墨石"
+      ],
+      "correct_keywords": false,
+      "required_citations_covered": false,
+      "source_text_verified": true,
+      "elapsed_ms": 2702,
+      "answer": "资料未说明苏禾负责的流萤项目使用何种数据库 [1]。已知关系链：苏禾负责流萤项目 [1]；晨曦项目使用青岚数据库 [2]，但晨曦项目由钱禾负责 [4]，与苏禾无关。因此无法推断流萤项目所用数据库，缺失“流萤项目使用某数据库”的信息。",
+      "sources": [
+        {
+          "name": "12-流萤负责人.txt",
+          "doc_id": "5f0130784ddd4137b7f676ed63edc742",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.7819,
+          "content": "苏禾负责流萤项目。"
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0516,
+          "content": "晨曦项目使用青岚数据库。"
+        },
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0552,
+          "content": "天枢项目使用青岚数据库。"
+        },
+        {
+          "name": "10-晨曦负责人.txt",
+          "doc_id": "375d7309ef64457b8e7127ca816bc254",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0984,
+          "content": "钱禾负责晨曦项目。"
+        },
+        {
+          "name": "05-海隼技术.txt",
+          "doc_id": "bb755bb88f8d4fc3ac83e21cb6dcc78d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.1474,
+          "content": "海隼项目使用墨石数据库。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2683,
+      "rewritten_question": "苏禾负责的项目使用什么数据库？请说明关系链。",
+      "correct_rule": false,
+      "reviewed_correct": false
+    },
+    {
+      "id": 8,
+      "mode": "hybrid",
+      "question": "苏禾负责的项目使用什么数据库？请说明关系链。",
+      "expected": [
+        "流萤",
+        "墨石"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2324,
+      "answer": "苏禾负责流萤项目 [1]；流萤项目使用墨石数据库 [3]。因此，苏禾负责的项目使用**墨石数据库**。关系链：苏禾 → 流萤项目 → 墨石数据库。",
+      "sources": [
+        {
+          "name": "12-流萤负责人.txt",
+          "doc_id": "5f0130784ddd4137b7f676ed63edc742",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.7819,
+          "content": "苏禾负责流萤项目。",
+          "relations": [
+            {
+              "id": "d72739ad5a2788f87b187e9ba6bd8946acce1c24468c076e2894c7dc1418ec68",
+              "from": "苏禾",
+              "to": "流萤项目",
+              "subject": "苏禾",
+              "object": "流萤项目",
+              "label": "负责",
+              "evidence": "苏禾负责流萤项目。"
+            }
+          ]
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0516,
+          "content": "晨曦项目使用青岚数据库。"
+        },
+        {
+          "doc_id": "01c08a5e7eb147b5b477c35eb9c48b7d",
+          "name": "11-流萤技术.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "流萤项目使用墨石数据库。",
+          "relations": [
+            {
+              "id": "ec9bf59175fbf2c6e2aeceaec762f44b53022dbc226d887a5f27dd459307c558",
+              "from": "流萤项目",
+              "to": "墨石数据库",
+              "subject": "流萤项目",
+              "object": "墨石数据库",
+              "label": "使用",
+              "evidence": "流萤项目使用墨石数据库。"
+            }
+          ]
+        },
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0552,
+          "content": "天枢项目使用青岚数据库。"
+        },
+        {
+          "name": "10-晨曦负责人.txt",
+          "doc_id": "375d7309ef64457b8e7127ca816bc254",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0984,
+          "content": "钱禾负责晨曦项目。"
+        },
+        {
+          "name": "05-海隼技术.txt",
+          "doc_id": "bb755bb88f8d4fc3ac83e21cb6dcc78d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.1474,
+          "content": "海隼项目使用墨石数据库。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2305,
+      "retrieval_ms": 1269,
+      "rewritten_question": "苏禾负责的项目使用什么数据库？请说明关系链。",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 9,
+      "mode": "vector",
+      "question": "哪些项目使用青岚数据库？",
+      "expected": [
+        "天枢",
+        "晨曦"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2120,
+      "answer": "使用青岚数据库的项目有：天枢项目 [2]、晨曦项目 [3]。",
+      "sources": [
+        {
+          "name": "03-青岚维护.txt",
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.39,
+          "content": "青岚数据库由远川科技维护。"
+        },
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.3994,
+          "content": "天枢项目使用青岚数据库。"
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.4012,
+          "content": "晨曦项目使用青岚数据库。"
+        },
+        {
+          "name": "05-海隼技术.txt",
+          "doc_id": "bb755bb88f8d4fc3ac83e21cb6dcc78d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.8287,
+          "content": "海隼项目使用墨石数据库。"
+        },
+        {
+          "name": "11-流萤技术.txt",
+          "doc_id": "01c08a5e7eb147b5b477c35eb9c48b7d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.8609,
+          "content": "流萤项目使用墨石数据库。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2104,
+      "rewritten_question": "哪些项目使用青岚数据库？",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 9,
+      "mode": "hybrid",
+      "question": "哪些项目使用青岚数据库？",
+      "expected": [
+        "天枢",
+        "晨曦"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2490,
+      "answer": "使用青岚数据库的项目有：天枢项目 [1]、晨曦项目 [3]。",
+      "sources": [
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.3994,
+          "content": "天枢项目使用青岚数据库。",
+          "relations": [
+            {
+              "id": "2d6a03459364d3cd3f75a076b035d224dc10436839d0159018a2cd66bcfcdd9e",
+              "from": "天枢项目",
+              "to": "青岚数据库",
+              "subject": "天枢项目",
+              "object": "青岚数据库",
+              "label": "使用",
+              "evidence": "天枢项目使用青岚数据库。"
+            }
+          ]
+        },
+        {
+          "name": "03-青岚维护.txt",
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.39,
+          "content": "青岚数据库由远川科技维护。",
+          "relations": [
+            {
+              "id": "fb4d65dc292fae67aa9863a8ec92011046364103778198f9e8db87a3aa6b3fcb",
+              "from": "青岚数据库",
+              "to": "远川科技",
+              "subject": "青岚数据库",
+              "object": "远川科技",
+              "label": "维护方",
+              "evidence": "青岚数据库由远川科技维护。"
+            }
+          ]
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.4012,
+          "content": "晨曦项目使用青岚数据库。",
+          "relations": [
+            {
+              "id": "33a5981aa6c1529c68da27e48081ec4c171a0957c607f02e5e008a42a0fcbea7",
+              "from": "晨曦项目",
+              "to": "青岚数据库",
+              "subject": "晨曦项目",
+              "object": "青岚数据库",
+              "label": "使用",
+              "evidence": "晨曦项目使用青岚数据库。"
+            }
+          ]
+        },
+        {
+          "doc_id": "bc688fc552544f8aa30dd2b26ab179a1",
+          "name": "01-负责人.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "林然负责天枢项目。",
+          "relations": [
+            {
+              "id": "9c38c6409aff3918e64075a1fd769bd5ef91a8bca80b989030aecb7c201b999a",
+              "from": "林然",
+              "to": "天枢项目",
+              "subject": "林然",
+              "object": "天枢项目",
+              "label": "负责",
+              "evidence": "林然负责天枢项目。"
+            }
+          ]
+        },
+        {
+          "doc_id": "34b03a9f1ad54a77bdf16b6eb7e02a95",
+          "name": "07-预算.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "天枢项目的试运行预算为1750万元。",
+          "relations": [
+            {
+              "id": "bdf611ccb188cd86bd670905449da5fc385ef22857edd84434bd124647d2ee46",
+              "from": "天枢项目",
+              "to": "1750万元",
+              "subject": "天枢项目",
+              "object": "1750万元",
+              "label": "试运行预算为",
+              "evidence": "天枢项目的试运行预算为1750万元。"
+            }
+          ]
+        },
+        {
+          "name": "05-海隼技术.txt",
+          "doc_id": "bb755bb88f8d4fc3ac83e21cb6dcc78d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.8287,
+          "content": "海隼项目使用墨石数据库。"
+        },
+        {
+          "name": "11-流萤技术.txt",
+          "doc_id": "01c08a5e7eb147b5b477c35eb9c48b7d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.8609,
+          "content": "流萤项目使用墨石数据库。"
+        },
+        {
+          "doc_id": "375d7309ef64457b8e7127ca816bc254",
+          "name": "10-晨曦负责人.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "钱禾负责晨曦项目。",
+          "relations": [
+            {
+              "id": "260a0c01bad00fefb0865474fb8b867444991b24085ec08e0887c600813d8bd9",
+              "from": "钱禾",
+              "to": "晨曦项目",
+              "subject": "钱禾",
+              "object": "晨曦项目",
+              "label": "负责",
+              "evidence": "钱禾负责晨曦项目。"
+            }
+          ]
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2474,
+      "retrieval_ms": 1586,
+      "rewritten_question": "哪些项目使用青岚数据库？",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 10,
+      "mode": "vector",
+      "question": "它使用什么数据库？",
+      "expected": [
+        "青岚"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2646,
+      "answer": "“它”指代不明：资料中涉及晨曦、天枢、海隼、流萤四个项目，分别使用青岚或墨石数据库 [1][2][3][5]。请明确具体项目后再作答。",
+      "sources": [
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.8833,
+          "content": "晨曦项目使用青岚数据库。"
+        },
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.8972,
+          "content": "天枢项目使用青岚数据库。"
+        },
+        {
+          "name": "05-海隼技术.txt",
+          "doc_id": "bb755bb88f8d4fc3ac83e21cb6dcc78d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9657,
+          "content": "海隼项目使用墨石数据库。"
+        },
+        {
+          "name": "03-青岚维护.txt",
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0884,
+          "content": "青岚数据库由远川科技维护。"
+        },
+        {
+          "name": "11-流萤技术.txt",
+          "doc_id": "01c08a5e7eb147b5b477c35eb9c48b7d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0964,
+          "content": "流萤项目使用墨石数据库。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2628,
+      "rewritten_question": "它使用什么数据库？",
+      "correct_rule": false,
+      "reviewed_correct": false
+    },
+    {
+      "id": 10,
+      "mode": "hybrid",
+      "question": "它使用什么数据库？",
+      "expected": [
+        "青岚"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 3430,
+      "answer": "天枢项目使用青岚数据库。[1]",
+      "sources": [
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.2515,
+          "content": "天枢项目使用青岚数据库。",
+          "relations": [
+            {
+              "id": "2d6a03459364d3cd3f75a076b035d224dc10436839d0159018a2cd66bcfcdd9e",
+              "from": "天枢项目",
+              "to": "青岚数据库",
+              "subject": "天枢项目",
+              "object": "青岚数据库",
+              "label": "使用",
+              "evidence": "天枢项目使用青岚数据库。"
+            }
+          ]
+        },
+        {
+          "name": "01-负责人.txt",
+          "doc_id": "bc688fc552544f8aa30dd2b26ab179a1",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9962,
+          "content": "林然负责天枢项目。",
+          "relations": [
+            {
+              "id": "9c38c6409aff3918e64075a1fd769bd5ef91a8bca80b989030aecb7c201b999a",
+              "from": "林然",
+              "to": "天枢项目",
+              "subject": "林然",
+              "object": "天枢项目",
+              "label": "负责",
+              "evidence": "林然负责天枢项目。"
+            }
+          ]
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.7054,
+          "content": "晨曦项目使用青岚数据库。",
+          "relations": [
+            {
+              "id": "33a5981aa6c1529c68da27e48081ec4c171a0957c607f02e5e008a42a0fcbea7",
+              "from": "晨曦项目",
+              "to": "青岚数据库",
+              "subject": "晨曦项目",
+              "object": "青岚数据库",
+              "label": "使用",
+              "evidence": "晨曦项目使用青岚数据库。"
+            }
+          ]
+        },
+        {
+          "name": "07-预算.txt",
+          "doc_id": "34b03a9f1ad54a77bdf16b6eb7e02a95",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.8631,
+          "content": "天枢项目的试运行预算为1750万元。",
+          "relations": [
+            {
+              "id": "bdf611ccb188cd86bd670905449da5fc385ef22857edd84434bd124647d2ee46",
+              "from": "天枢项目",
+              "to": "1750万元",
+              "subject": "天枢项目",
+              "object": "1750万元",
+              "label": "试运行预算为",
+              "evidence": "天枢项目的试运行预算为1750万元。"
+            }
+          ]
+        },
+        {
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "name": "03-青岚维护.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "青岚数据库由远川科技维护。",
+          "relations": [
+            {
+              "id": "fb4d65dc292fae67aa9863a8ec92011046364103778198f9e8db87a3aa6b3fcb",
+              "from": "青岚数据库",
+              "to": "远川科技",
+              "subject": "青岚数据库",
+              "object": "远川科技",
+              "label": "维护方",
+              "evidence": "青岚数据库由远川科技维护。"
+            }
+          ]
+        },
+        {
+          "name": "05-海隼技术.txt",
+          "doc_id": "bb755bb88f8d4fc3ac83e21cb6dcc78d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9226,
+          "content": "海隼项目使用墨石数据库。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 3412,
+      "retrieval_ms": 1810,
+      "rewritten_question": "天枢项目使用什么数据库？",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 11,
+      "mode": "vector",
+      "question": "玄鸟项目的负责人是谁？",
+      "expected": [
+        "未",
+        "没有",
+        "不足",
+        "无法",
+        "缺少"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2848,
+      "answer": "资料中未提及“玄鸟项目”及其负责人，无法回答。[1][2][3][4][5]",
+      "sources": [
+        {
+          "name": "04-海隼负责人.txt",
+          "doc_id": "181faeb7ccc641d7bb7e49933553fc4e",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9152,
+          "content": "周宁负责海隼项目。"
+        },
+        {
+          "name": "01-负责人.txt",
+          "doc_id": "bc688fc552544f8aa30dd2b26ab179a1",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9841,
+          "content": "林然负责天枢项目。"
+        },
+        {
+          "name": "10-晨曦负责人.txt",
+          "doc_id": "375d7309ef64457b8e7127ca816bc254",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0048,
+          "content": "钱禾负责晨曦项目。"
+        },
+        {
+          "name": "12-流萤负责人.txt",
+          "doc_id": "5f0130784ddd4137b7f676ed63edc742",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0475,
+          "content": "苏禾负责流萤项目。"
+        },
+        {
+          "name": "05-海隼技术.txt",
+          "doc_id": "bb755bb88f8d4fc3ac83e21cb6dcc78d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.133,
+          "content": "海隼项目使用墨石数据库。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2830,
+      "rewritten_question": "玄鸟项目的负责人是谁？",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 11,
+      "mode": "hybrid",
+      "question": "玄鸟项目的负责人是谁？",
+      "expected": [
+        "未",
+        "没有",
+        "不足",
+        "无法",
+        "缺少"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 4191,
+      "answer": "资料中未提及“玄鸟项目”，无法确定其负责人。",
+      "sources": [
+        {
+          "name": "04-海隼负责人.txt",
+          "doc_id": "181faeb7ccc641d7bb7e49933553fc4e",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9152,
+          "content": "周宁负责海隼项目。",
+          "relations": [
+            {
+              "id": "4e4dab4c2ef4b795496a700e5e21f41d84b1c5f0f665d55a0e766c0fa0408da6",
+              "from": "周宁",
+              "to": "海隼项目",
+              "subject": "周宁",
+              "object": "海隼项目",
+              "label": "负责",
+              "evidence": "周宁负责海隼项目。"
+            }
+          ]
+        },
+        {
+          "name": "01-负责人.txt",
+          "doc_id": "bc688fc552544f8aa30dd2b26ab179a1",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9841,
+          "content": "林然负责天枢项目。",
+          "relations": [
+            {
+              "id": "9c38c6409aff3918e64075a1fd769bd5ef91a8bca80b989030aecb7c201b999a",
+              "from": "林然",
+              "to": "天枢项目",
+              "subject": "林然",
+              "object": "天枢项目",
+              "label": "负责",
+              "evidence": "林然负责天枢项目。"
+            }
+          ]
+        },
+        {
+          "name": "05-海隼技术.txt",
+          "doc_id": "bb755bb88f8d4fc3ac83e21cb6dcc78d",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.133,
+          "content": "海隼项目使用墨石数据库。",
+          "relations": [
+            {
+              "id": "c80eaeebab54cf5b7a07c004dae68643537ae05732fd84f1a85c24ffed24276f",
+              "from": "海隼项目",
+              "to": "墨石数据库",
+              "subject": "海隼项目",
+              "object": "墨石数据库",
+              "label": "使用",
+              "evidence": "海隼项目使用墨石数据库。"
+            }
+          ]
+        },
+        {
+          "name": "10-晨曦负责人.txt",
+          "doc_id": "375d7309ef64457b8e7127ca816bc254",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0048,
+          "content": "钱禾负责晨曦项目。",
+          "relations": [
+            {
+              "id": "260a0c01bad00fefb0865474fb8b867444991b24085ec08e0887c600813d8bd9",
+              "from": "钱禾",
+              "to": "晨曦项目",
+              "subject": "钱禾",
+              "object": "晨曦项目",
+              "label": "负责",
+              "evidence": "钱禾负责晨曦项目。"
+            }
+          ]
+        },
+        {
+          "doc_id": "a9a4d9c556d04e879d74c9bd4f435c09",
+          "name": "08-日期.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "海隼项目的上线日期为2026年12月20日。",
+          "relations": [
+            {
+              "id": "2d59cbbce0ea59710a6729ae6e7d7af039f236de2f3917e53a8520289ccef547",
+              "from": "海隼项目",
+              "to": "2026年12月20日",
+              "subject": "海隼项目",
+              "object": "2026年12月20日",
+              "label": "上线日期为",
+              "evidence": "海隼项目的上线日期为2026年12月20日。"
+            }
+          ]
+        },
+        {
+          "name": "12-流萤负责人.txt",
+          "doc_id": "5f0130784ddd4137b7f676ed63edc742",
+          "chunk": 1,
+          "page": 0,
+          "distance": 1.0475,
+          "content": "苏禾负责流萤项目。"
+        },
+        {
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "name": "02-天枢技术.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "天枢项目使用青岚数据库。",
+          "relations": [
+            {
+              "id": "2d6a03459364d3cd3f75a076b035d224dc10436839d0159018a2cd66bcfcdd9e",
+              "from": "天枢项目",
+              "to": "青岚数据库",
+              "subject": "天枢项目",
+              "object": "青岚数据库",
+              "label": "使用",
+              "evidence": "天枢项目使用青岚数据库。"
+            }
+          ]
+        },
+        {
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "name": "03-青岚维护.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "青岚数据库由远川科技维护。",
+          "relations": [
+            {
+              "id": "fb4d65dc292fae67aa9863a8ec92011046364103778198f9e8db87a3aa6b3fcb",
+              "from": "青岚数据库",
+              "to": "远川科技",
+              "subject": "青岚数据库",
+              "object": "远川科技",
+              "label": "维护方",
+              "evidence": "青岚数据库由远川科技维护。"
+            }
+          ]
+        },
+        {
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "name": "09-晨曦技术.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "晨曦项目使用青岚数据库。",
+          "relations": [
+            {
+              "id": "33a5981aa6c1529c68da27e48081ec4c171a0957c607f02e5e008a42a0fcbea7",
+              "from": "晨曦项目",
+              "to": "青岚数据库",
+              "subject": "晨曦项目",
+              "object": "青岚数据库",
+              "label": "使用",
+              "evidence": "晨曦项目使用青岚数据库。"
+            }
+          ]
+        },
+        {
+          "doc_id": "34b03a9f1ad54a77bdf16b6eb7e02a95",
+          "name": "07-预算.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "天枢项目的试运行预算为1750万元。",
+          "relations": [
+            {
+              "id": "bdf611ccb188cd86bd670905449da5fc385ef22857edd84434bd124647d2ee46",
+              "from": "天枢项目",
+              "to": "1750万元",
+              "subject": "天枢项目",
+              "object": "1750万元",
+              "label": "试运行预算为",
+              "evidence": "天枢项目的试运行预算为1750万元。"
+            }
+          ]
+        },
+        {
+          "doc_id": "25192a1b23964d08b1f11f157ae6baa8",
+          "name": "06-墨石维护.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "墨石数据库由北辰实验室维护。",
+          "relations": [
+            {
+              "id": "000075b608198303670cd8f4f855c153c42c02abef147e681d6cb9c57b39c7a9",
+              "from": "墨石数据库",
+              "to": "北辰实验室",
+              "subject": "墨石数据库",
+              "object": "北辰实验室",
+              "label": "维护",
+              "evidence": "墨石数据库由北辰实验室维护。"
+            }
+          ]
+        },
+        {
+          "doc_id": "01c08a5e7eb147b5b477c35eb9c48b7d",
+          "name": "11-流萤技术.txt",
+          "chunk": 1,
+          "page": 0,
+          "content": "流萤项目使用墨石数据库。",
+          "relations": [
+            {
+              "id": "ec9bf59175fbf2c6e2aeceaec762f44b53022dbc226d887a5f27dd459307c558",
+              "from": "流萤项目",
+              "to": "墨石数据库",
+              "subject": "流萤项目",
+              "object": "墨石数据库",
+              "label": "使用",
+              "evidence": "流萤项目使用墨石数据库。"
+            }
+          ]
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 4173,
+      "retrieval_ms": 3119,
+      "rewritten_question": "玄鸟项目的负责人是谁？",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 12,
+      "mode": "vector",
+      "question": "天枢项目使用的数据库由谁维护？请说明关系链。",
+      "expected": [
+        "青岚",
+        "远川科技"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 2649,
+      "answer": "天枢项目使用青岚数据库 [1]，青岚数据库由远川科技维护 [4]。因此，天枢项目所用数据库的维护方是**远川科技**。关系链：天枢项目 → 青岚数据库 → 远川科技。",
+      "sources": [
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.3468,
+          "content": "天枢项目使用青岚数据库。"
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.8157,
+          "content": "晨曦项目使用青岚数据库。"
+        },
+        {
+          "name": "07-预算.txt",
+          "doc_id": "34b03a9f1ad54a77bdf16b6eb7e02a95",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.8936,
+          "content": "天枢项目的试运行预算为1750万元。"
+        },
+        {
+          "name": "03-青岚维护.txt",
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9078,
+          "content": "青岚数据库由远川科技维护。"
+        },
+        {
+          "name": "01-负责人.txt",
+          "doc_id": "bc688fc552544f8aa30dd2b26ab179a1",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9683,
+          "content": "林然负责天枢项目。"
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 2631,
+      "rewritten_question": "天枢项目使用的数据库由谁维护？请说明关系链。",
+      "correct_rule": true,
+      "reviewed_correct": true
+    },
+    {
+      "id": 12,
+      "mode": "hybrid",
+      "question": "天枢项目使用的数据库由谁维护？请说明关系链。",
+      "expected": [
+        "青岚",
+        "远川科技"
+      ],
+      "correct_keywords": true,
+      "required_citations_covered": true,
+      "source_text_verified": true,
+      "elapsed_ms": 3440,
+      "answer": "天枢项目使用青岚数据库 [1]，青岚数据库由远川科技维护 [4]。因此，天枢项目使用的数据库由**远川科技**维护。\n\n关系链：天枢项目 → 使用青岚数据库 [1] → 由远川科技维护 [4]。",
+      "sources": [
+        {
+          "name": "02-天枢技术.txt",
+          "doc_id": "a25c0a3394174d8b84ea92274655516b",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.3468,
+          "content": "天枢项目使用青岚数据库。",
+          "relations": [
+            {
+              "id": "2d6a03459364d3cd3f75a076b035d224dc10436839d0159018a2cd66bcfcdd9e",
+              "from": "天枢项目",
+              "to": "青岚数据库",
+              "subject": "天枢项目",
+              "object": "青岚数据库",
+              "label": "使用",
+              "evidence": "天枢项目使用青岚数据库。"
+            }
+          ]
+        },
+        {
+          "name": "01-负责人.txt",
+          "doc_id": "bc688fc552544f8aa30dd2b26ab179a1",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9683,
+          "content": "林然负责天枢项目。",
+          "relations": [
+            {
+              "id": "9c38c6409aff3918e64075a1fd769bd5ef91a8bca80b989030aecb7c201b999a",
+              "from": "林然",
+              "to": "天枢项目",
+              "subject": "林然",
+              "object": "天枢项目",
+              "label": "负责",
+              "evidence": "林然负责天枢项目。"
+            }
+          ]
+        },
+        {
+          "name": "09-晨曦技术.txt",
+          "doc_id": "5bc9989888cb478fb1bc4065f368620a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.8157,
+          "content": "晨曦项目使用青岚数据库。",
+          "relations": [
+            {
+              "id": "33a5981aa6c1529c68da27e48081ec4c171a0957c607f02e5e008a42a0fcbea7",
+              "from": "晨曦项目",
+              "to": "青岚数据库",
+              "subject": "晨曦项目",
+              "object": "青岚数据库",
+              "label": "使用",
+              "evidence": "晨曦项目使用青岚数据库。"
+            }
+          ]
+        },
+        {
+          "name": "03-青岚维护.txt",
+          "doc_id": "e3ff4298aff84ba787392c7b6b15087a",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.9078,
+          "content": "青岚数据库由远川科技维护。",
+          "relations": [
+            {
+              "id": "fb4d65dc292fae67aa9863a8ec92011046364103778198f9e8db87a3aa6b3fcb",
+              "from": "青岚数据库",
+              "to": "远川科技",
+              "subject": "青岚数据库",
+              "object": "远川科技",
+              "label": "维护方",
+              "evidence": "青岚数据库由远川科技维护。"
+            }
+          ]
+        },
+        {
+          "name": "07-预算.txt",
+          "doc_id": "34b03a9f1ad54a77bdf16b6eb7e02a95",
+          "chunk": 1,
+          "page": 0,
+          "distance": 0.8936,
+          "content": "天枢项目的试运行预算为1750万元。",
+          "relations": [
+            {
+              "id": "bdf611ccb188cd86bd670905449da5fc385ef22857edd84434bd124647d2ee46",
+              "from": "天枢项目",
+              "to": "1750万元",
+              "subject": "天枢项目",
+              "object": "1750万元",
+              "label": "试运行预算为",
+              "evidence": "天枢项目的试运行预算为1750万元。"
+            }
+          ]
+        }
+      ],
+      "status": "answered",
+      "duration_ms": 3423,
+      "retrieval_ms": 2163,
+      "rewritten_question": "天枢项目使用的数据库由谁维护？请说明关系链。",
+      "correct_rule": true,
+      "reviewed_correct": true
+    }
+  ]
+}
