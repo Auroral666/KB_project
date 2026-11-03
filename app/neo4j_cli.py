@@ -12,7 +12,7 @@ def start():
         return
     if not config.neo4j_password:
         raise RuntimeError("请先在 .env 配置 neo4j_password。")
-    print("========== 1. 启动项目 Neo4j 容器 ==========", flush=True)
+    print("========== 2. 启动项目 Neo4j 容器 ==========", flush=True)
     subprocess.run(["docker", "compose", "-p", "kb-project", "-f", "compose.neo4j.yml", "up", "-d"],
                    cwd=PROJECT_ROOT, check=True, timeout=600)
     deadline = time.monotonic() + 90

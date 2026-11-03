@@ -9,7 +9,13 @@ if not exist "%RAG_PYTHON%" (
     set "KB_EXIT_CODE=1"
     goto finish
 )
-REM ========== 2. 启动项目并确认就绪 ==========
+REM ========== 2. 启动 Milvus 向量服务并确认连接 ==========
+"%RAG_PYTHON%" -B -X utf8 -m app.milvus_cli
+if errorlevel 1 (
+    set "KB_EXIT_CODE=1"
+    goto finish
+)
+REM ========== 3. 启动图谱和网页服务并确认就绪 ==========
 "%RAG_PYTHON%" -B -X utf8 -m app.neo4j_cli
 if errorlevel 1 (
     set "KB_EXIT_CODE=1"

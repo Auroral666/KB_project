@@ -6,7 +6,7 @@
 
 1. 安装 `requirements.txt`（相对基线仅新增 `neo4j==5.26.0`）。现有 Python 环境可仅安装该驱动。
 2. `.env` 增加 `neo4j_password`，其余默认值见 `.env.example`。本次实施已在本机生成密码，不提交到 Git。
-3. 启动 Docker Desktop，保持现有 Milvus 可用；双击 `启动_停止项目/启动项目.cmd`。
+3. 双击 `启动_停止项目/启动项目.cmd`，自动检查 Docker、启动已有 Milvus 容器及其依赖，再启动 Neo4j 和网页（容器名称配置见 README）。
 4. 网页：`http://127.0.0.1:8010`；Neo4j Browser：`http://127.0.0.1:7474`，用户名 `neo4j`，密码读取本机 `.env`。
 
 单独启动 Neo4j：在项目根目录执行 `python -B -X utf8 -m app.neo4j_cli`，或 `docker compose -p kb-project -f compose.neo4j.yml up -d`。镜像固定为 `neo4j:5.26.0-community`，数据在 Compose 命名卷。停止网页不会停止数据库；停止专属图谱容器可执行对应 Compose `stop`，不要加 `-v` 删除数据。
