@@ -32,7 +32,7 @@
 | 流式交互 | SSE 推送状态、来源、图谱和文字增量 | 回答逐步呈现，完整结果持久化 |
 | 本地运维 | 进程归属校验、健康检查、重复启动识别 | 一键启停网页及检查数据库依赖 |
 
-本版本的扩展集中在工作台界面、文档生命周期、混合检索、引用阅读、持久化与本地运维。项目保留上游嵌入适配组件及其署名，详见 [NOTICE](../NOTICE)。
+本版本的扩展集中在工作台界面、文档生命周期、混合检索、引用阅读、持久化与本地运维。项目保留上游嵌入适配组件及其署名，详见 [NOTICE](../docs/third-party/NOTICE)。
 
 <a id="demo"></a>
 ## 实际界面与演示路径
@@ -188,4 +188,4 @@ $env:RAG_PYTHON = (Resolve-Path .\.venv\Scripts\python.exe).Path
 <a id="license"></a>
 ## 许可与来源
 
-保留上游 Knowledge_QA_RAG（CS_木成河）的适配组件、Apache License 2.0 和署名。详情见 [LICENSE](../LICENSE)、[NOTICE](../NOTICE)。前端第三方组件许可证位于 `app/web/static/vendor/`，模型权重及模型服务各自适用其许可或条款。
+保留上游 Knowledge_QA_RAG（CS_木成河）的适配组件、Apache License 2.0 和署名。详情见 [LICENSE](../docs/third-party/LICENSE)、[NOTICE](../docs/third-party/NOTICE)。前端第三方组件许可证位于 `app/web/static/vendor/`，模型权重及模型服务各自适用其许可或条款。

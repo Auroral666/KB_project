@@ -32,7 +32,7 @@ When knowledge lives across PDFs, Word documents, and notes, a plausible answer 
 | Streaming interaction | SSE status, sources, graph data, and text deltas | Incremental answers with completed results persisted |
 | Local operations | Process ownership checks, health probes, and duplicate-start detection | Managed startup and shutdown |
 
-The extensions in this version cover the workspace UI, document lifecycle, hybrid retrieval, source reading, persistence, and local operations. Adapted upstream embedding components retain their attribution in [NOTICE](../NOTICE).
+The extensions in this version cover the workspace UI, document lifecycle, hybrid retrieval, source reading, persistence, and local operations. Adapted upstream embedding components retain their attribution in [NOTICE](../docs/third-party/NOTICE).
 
 <a id="demo"></a>
 ## Screenshots and walkthrough
@@ -188,4 +188,4 @@ See [tests/README.md](../tests/README.md) for DOM checks and opt-in live evaluat
 <a id="license"></a>
 ## License and credits
 
-Adapted components from Knowledge_QA_RAG by CS_木成河 retain the upstream Apache License 2.0 and attribution. See [LICENSE](../LICENSE) and [NOTICE](../NOTICE). Frontend component licenses remain under `app/web/static/vendor/`; model weights and model services have their own terms.
+Adapted components from Knowledge_QA_RAG by CS_木成河 retain the upstream Apache License 2.0 and attribution. See [LICENSE](../docs/third-party/LICENSE) and [NOTICE](../docs/third-party/NOTICE). Frontend component licenses remain under `app/web/static/vendor/`; model weights and model services have their own terms.
