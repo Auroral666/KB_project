@@ -14,7 +14,7 @@
   <a href="#license">License & credits</a>
 </p>
 
-![Chat and source citations](docs/images/chat-demo.png)
+![Chat and source citations](../docs/images/chat-demo.png)
 
 > Screenshots show the actual UI with an isolated database, synthetic documents, and a predefined demonstration answer. They demonstrate the interface, not model quality. Both Chinese and English READMEs are available; the application UI is currently Chinese.
 
@@ -32,19 +32,19 @@ When knowledge lives across PDFs, Word documents, and notes, a plausible answer 
 | Streaming interaction | SSE status, sources, graph data, and text deltas | Incremental answers with completed results persisted |
 | Local operations | Process ownership checks, health probes, and duplicate-start detection | Managed startup and shutdown |
 
-The extensions in this version cover the workspace UI, document lifecycle, hybrid retrieval, source reading, persistence, and local operations. Adapted upstream embedding components retain their attribution in [NOTICE](NOTICE).
+The extensions in this version cover the workspace UI, document lifecycle, hybrid retrieval, source reading, persistence, and local operations. Adapted upstream embedding components retain their attribution in [NOTICE](../NOTICE).
 
 <a id="demo"></a>
 ## Screenshots and walkthrough
 
-![Workspace overview](docs/images/workspace-demo.png)
+![Workspace overview](../docs/images/workspace-demo.png)
 
 1. Upload a PDF, DOCX, TXT, or Markdown document and wait for indexing.
 2. Ask a question and inspect the streamed answer; continue with a follow-up.
 3. Open a citation to inspect the full original, or expand the retrieved relationship graph.
 4. Check retrieval hits, answer duration, and history in the insights view.
 
-A detailed Chinese walkthrough is available in the [project presentation guide](docs/项目面试与演示指南.md).
+See the [architecture guide](../docs/architecture.md) for implementation details.
 
 <a id="architecture"></a>
 ## Architecture
@@ -74,7 +74,7 @@ flowchart TD
 - **Milvus** stores vectors and chunks, **Neo4j** stores relationships, and **SQLite** stores application records.
 - The Python backend loads **Jina embeddings**. The UI's vector-service indicator checks the **Milvus connection**.
 - A document enters the inventory after both indexes are written. Compensation handles partial failure; this is not a distributed transaction.
-- OpenAI-compatible configuration controls model endpoints and names. See the [hybrid retrieval guide](docs/hybrid-rag.md) for details.
+- OpenAI-compatible configuration controls model endpoints and names. See the [hybrid retrieval guide](../docs/hybrid-rag.md) for details.
 
 | Layer | Technologies |
 | --- | --- |
@@ -111,7 +111,7 @@ KB_project/
 
 ### 1. Prepare the environment
 
-Use Python 3.10 and a reachable Milvus instance. Graph-enabled operation also needs Docker Desktop; [compose.neo4j.yml](compose.neo4j.yml) manages Neo4j.
+Use Python 3.10 and a reachable Milvus instance. Graph-enabled operation also needs Docker Desktop; [compose.neo4j.yml](../compose.neo4j.yml) manages Neo4j.
 
 ```powershell
 git clone https://github.com/Auroral666/KB_project.git
@@ -168,7 +168,7 @@ Run the isolated regression suite without external generation-model calls:
 .\.venv\Scripts\python.exe -B -X utf8 -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-See [tests/README.md](tests/README.md) for DOM checks and opt-in live evaluation. Live evaluation uses configured model services and may incur charges.
+See [tests/README.md](../tests/README.md) for DOM checks and opt-in live evaluation. Live evaluation uses configured model services and may incur charges.
 
 - Indexing uses a single-process worker queue; do not share it across multiple Uvicorn workers.
 - PDF, DOCX, TXT, and MD uploads are limited to 20 MB per file. Scans require OCR first; DOCX uses extracted text rather than Word layout.
@@ -179,14 +179,13 @@ See [tests/README.md](tests/README.md) for DOM checks and opt-in live evaluation
 <a id="documentation"></a>
 ## Documentation
 
-- [Architecture and data maintenance](docs/architecture.md)
-- [Hybrid retrieval and graph setup](docs/hybrid-rag.md)
-- [Graph contract](docs/graph-contract.md)
-- [Presentation and interview guide](docs/项目面试与演示指南.md)
-- [Publication scope](docs/PUBLISHING.md)
+- [Architecture and data maintenance](../docs/architecture.md)
+- [Hybrid retrieval and graph setup](../docs/hybrid-rag.md)
+- [Graph contract](../docs/graph-contract.md)
+- [Publication scope](../docs/PUBLISHING.md)
 - [Chinese README](README.md)
 
 <a id="license"></a>
 ## License and credits
 
-Adapted components from Knowledge_QA_RAG by CS_木成河 retain the upstream Apache License 2.0 and attribution. See [LICENSE](LICENSE) and [NOTICE](NOTICE). Frontend component licenses remain under `app/web/static/vendor/`; model weights and model services have their own terms.
+Adapted components from Knowledge_QA_RAG by CS_木成河 retain the upstream Apache License 2.0 and attribution. See [LICENSE](../LICENSE) and [NOTICE](../NOTICE). Frontend component licenses remain under `app/web/static/vendor/`; model weights and model services have their own terms.

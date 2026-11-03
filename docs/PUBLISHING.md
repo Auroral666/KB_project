@@ -8,12 +8,15 @@
 | `requirements.txt`、`tests/` | 是 | 运行依赖、隔离测试、固定合成评估样例 |
 | `compose.neo4j.yml` | 是 | 读取环境变量的图谱配置，不包含真实密码 |
 | `.env.example`、`langfuse/.env.example` | 是 | 使用占位符的配置说明 |
-| `README.md`、`README.en.md`、`docs/` | 是 | 双语说明、架构、验证记录与合成界面截图 |
+| 根目录 `README.md`、`Readme/`、公开 `docs/` 文档 | 是 | 首页入口、完整双语说明、架构、验证记录与合成界面截图 |
 | 前端第三方组件、`LICENSE`、`NOTICE` | 是 | 浏览器运行所需资源及其许可署名 |
 | `.env` 及其他私有环境文件 | 否 | 模型密钥、数据库密码、观测服务凭据 |
 | `data/`、`upload_files/` 的实际内容 | 否 | 个人知识库、会话、上传原件；只保留 `.gitkeep` |
 | `temp/`、`.runtime/`、`.local-backups/` | 否 | 日志、进程信息、备份与本地验收产物 |
 | 虚拟环境、`node_modules/`、模型缓存 | 否 | 机器相关或可重新安装的大体积依赖 |
+| `docs/项目面试与演示指南.md` | 否 | 本地面试准备资料，停止 Git 跟踪并通过忽略规则排除 |
+
+完整项目说明位于 `Readme/README.md` 和 `Readme/README.en.md`。根目录 `README.md` 仅保留 GitHub 首页入口与导航。
 
 ## 发布检查
 
