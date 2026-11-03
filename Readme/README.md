@@ -10,6 +10,7 @@
   <a href="#highlights">项目亮点</a> ·
   <a href="#demo">实际界面</a> ·
   <a href="#architecture">架构设计</a> ·
+  <a href="#deployment">部署说明</a> ·
   <a href="#quick-start">快速开始</a> ·
   <a href="#troubleshooting">常见问题</a> ·
   <a href="#validation">验证与边界</a> ·
@@ -36,6 +37,15 @@
 
 <a id="demo"></a>
 ## 实际界面与演示路径
+
+| 页面 | 路由 | 展示与交互 |
+| --- | --- | --- |
+| 工作台 | `/` | 文档与问答统计、活动趋势、最近收录，以及知识库和问答入口 |
+| 智能问答 | `/chat` | 流式回答、引用原文定位、关系图谱展开/折叠、知识范围与最近会话 |
+| 知识库 | `/knowledge` | 文档上传、后台任务进度、文件名和类型筛选、单份/批量删除 |
+| 数据洞察 | `/insights` | 近 7 天或 30 天问答趋势、资料命中、耗时及历史记录 |
+
+### 演示操作顺序
 
 1. 上传 PDF、DOCX、TXT 或 Markdown，等待后台建库成功。
 2. 提问并查看流式回答；继续追问，观察上下文改写后的检索结果。
@@ -95,6 +105,15 @@ flowchart TD
 | 内容安全 | Marked + DOMPurify |
 | 可选观测 | 独立的 Langfuse 启动入口 |
 
+### 技术框架对应到代码
+
+| 模块 | 框架或职责 | 代码入口 |
+| --- | --- | --- |
+| Web 应用 | FastAPI 路由、生命周期、HTTP 与 SSE | [应用组装](../app/main.py)、[问答接口](../app/api/chat.py) |
+| 建库服务 | 文档解析、语义分块、持久化任务及恢复 | [任务调度](../app/services/index_jobs.py)、[文档处理](../app/services/documents.py) |
+| 检索与生成 | LangChain 适配、Jina 嵌入、双路召回、证据融合与模型生成 | [RAG 服务](../app/services/rag.py)、[关系图谱](../app/services/knowledge_graph.py) |
+| 数据与界面 | SQLite 记录、Jinja2 模板、原生 JavaScript 交互 | [业务存储](../app/repositories/workspace.py)、[界面模板](../app/web/templates/workspace.html) |
+
 ### 工程取舍
 
 - **任务先落库，再后台处理**：上传不必等待整个建库流程；进度持久化，服务重启后恢复未完成任务。
@@ -121,6 +140,24 @@ KB_project/
 ├── data/                    运行时 SQLite，仅保留空目录占位
 └── upload_files/            用户原件，不上传 GitHub
 ```
+
+<a id="deployment"></a>
+## 部署说明
+
+| 组件 | 运行方式 | 默认地址或位置 |
+| --- | --- | --- |
+| 网页与 API | Python / Uvicorn 进程，Windows 启停脚本负责管理 | `http://127.0.0.1:8010` |
+| Milvus | 已准备好的本机容器或远程服务 | `localhost:19530`，可通过 `.env` 修改 |
+| Neo4j（可选） | 项目 `compose.neo4j.yml`，镜像固定为 `neo4j:5.26.0-community` | Browser：`127.0.0.1:7474`；Bolt：`127.0.0.1:7687` |
+| 嵌入模型 | 在 Python 进程内加载，使用 CUDA 或 CPU | `.env` 中的模型标识或本地目录 |
+| 生成模型 | 配置的 OpenAI 兼容服务 | `.env` 中的服务地址和模型名 |
+| 业务记录 | 本地 SQLite 与原文件目录 | `data/workspace.db`、`upload_files/` |
+
+- **完整体验**：准备 Milvus，设置模型配置和 Neo4j 密码，使用启动脚本依次检查数据库并启动网页。
+- **简化体验**：设置 `neo4j_enabled=false`，跳过 Neo4j，保留文档管理、向量检索和带引用问答。
+- **数据库已在运行**：也可用下文的前台 Python 命令直接启动网页；该命令不负责启动数据库。
+
+仓库仅提供 Neo4j 的 Compose 配置，未提供整个应用栈的 Dockerfile 或一键容器部署。当前服务面向本机访问；公网与多用户使用还需补充认证、权限隔离和反向代理等部署设计。
 
 <a id="quick-start"></a>
 ## 快速开始

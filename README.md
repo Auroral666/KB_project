@@ -2,7 +2,7 @@
 
 **把个人文档变成可追问、可查证的知识库。** 知屿将文档管理、Milvus 向量检索、Neo4j 关系检索和带引用的流式问答放在同一个本地工作台中。
 
-[完整中文说明](Readme/README.md) · [English](Readme/README.en.md) · [架构设计](Readme/README.md#architecture) · [测试说明](tests/README.md)
+[技术框架](#architecture) · [界面与演示](#demo) · [部署说明](#deployment) · [完整中文说明](Readme/README.md) · [English](Readme/README.en.md)
 
 ![智能问答与关系图谱](docs/images/chat-demo.png)
 
@@ -18,9 +18,24 @@
 | 核对回答是否有依据 | 点击引用查看完整原文、定位片段，展开本次检索的关系图谱 |
 | 维护本地资料 | 文档单选或批量删除、会话持久化、资料命中与耗时统计 |
 
-## 快速开始
+<a id="demo"></a>
+## 界面与使用演示
+
+| 页面 | 地址 | 主要操作 |
+| --- | --- | --- |
+| 工作台 | `/` | 查看资料统计、问答活动和最近收录，进入问答或知识库 |
+| 智能问答 | `/chat` | 新建或恢复会话、连续追问、点击引用、展开或折叠关系图谱 |
+| 知识库 | `/knowledge` | 上传和筛选文档、查看建库任务、单份或批量删除 |
+| 数据洞察 | `/insights` | 按近 7 天或 30 天查看问答趋势、命中与耗时统计 |
+
+一次完整演示：**上传文档 → 等待建库 → 提问与追问 → 点击引用核对原文 → 展开关系图谱**。例如上传“林然负责天枢项目，天枢项目使用青岚数据库”，先问项目负责人，再追问“它使用什么数据库？”。启用图谱并抽取到有效关系后，可检查实体之间的连接。完整步骤见[短文档试用](Readme/README.md#demo)。
+
+<a id="deployment"></a>
+## 部署与快速开始
 
 以下命令面向 **Windows PowerShell + Python 3.10**。开始前需要可连接的 **Milvus** 和模型服务；启用 Neo4j 图谱时还需要 Docker Desktop。
+
+部署结构：**Python 应用 + Milvus + 可选 Neo4j + 配置的模型服务**。本仓库的 `compose.neo4j.yml` 只部署 Neo4j；应用运行在 Python 进程中，Milvus 需要提前准备。
 
 ### 1. 安装依赖
 
@@ -57,7 +72,18 @@ $env:RAG_PYTHON = (Resolve-Path .\.venv\Scripts\python.exe).Path
 
 停止网页不会停止数据库容器。首次使用可能下载嵌入模型；`RAG_PYTHON` 需在新终端重新设置。更多说明见[配置与启动](Readme/README.md#quick-start)和[常见问题](Readme/README.md#troubleshooting)。
 
-## 技术与实现
+<a id="architecture"></a>
+## 技术框架与处理流程
+
+```mermaid
+flowchart LR
+    UI["Jinja2 · JavaScript 工作台"] --> API["FastAPI · HTTP / SSE"]
+    API --> RAG["LangChain · Jina Embeddings"]
+    RAG --> VECTOR[(Milvus)]
+    RAG --> GRAPH[(Neo4j)]
+    RAG --> MODEL["配置的模型服务"]
+    API --> RECORDS[(SQLite)]
+```
 
 | 层次 | 技术 |
 | --- | --- |
@@ -65,7 +91,9 @@ $env:RAG_PYTHON = (Resolve-Path .\.venv\Scripts\python.exe).Path
 | 数据存储 | SQLite 保存业务记录，Milvus 保存向量，Neo4j 保存实体关系 |
 | 浏览器工作台 | Jinja2、原生 JavaScript/CSS、SSE、PDF.js、Vis Network、Marked、DOMPurify |
 
-文档写入采用后台任务与失败补偿；检索并行查询向量和图谱，按文档片段去重融合。具体流程与取舍见[架构设计](Readme/README.md#architecture)及[混合检索说明](docs/hybrid-rag.md)。
+**建库链路**：原文件保存 → 语义分块 → 嵌入与关系抽取 → 写入索引 → 发布文档清单。
+
+**问答链路**：近期对话改写 → 并行向量/图谱检索 → 按文档片段融合 → 流式回答与引用 → 完整结果落库。具体流程与取舍见[架构设计](Readme/README.md#architecture)及[混合检索说明](docs/hybrid-rag.md)。
 
 ## 文档与验证
 

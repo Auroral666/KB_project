@@ -10,6 +10,7 @@ Knowledge Studio is a local RAG workspace that retrieves evidence through vector
   <a href="#highlights">Highlights</a> ·
   <a href="#demo">Screenshots</a> ·
   <a href="#architecture">Architecture</a> ·
+  <a href="#deployment">Deployment</a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="#troubleshooting">Troubleshooting</a> ·
   <a href="#validation">Validation & limits</a> ·
@@ -36,6 +37,15 @@ When knowledge lives across PDFs, Word documents, and notes, a plausible answer 
 
 <a id="demo"></a>
 ## Screenshots and walkthrough
+
+| Page | Route | Interface and interactions |
+| --- | --- | --- |
+| Workspace | `/` | Document and question statistics, activity trends, recent uploads, and shortcuts |
+| Chat | `/chat` | Streaming answers, citations and original-text navigation, expandable relationship graphs, knowledge scope, and conversation history |
+| Knowledge base | `/knowledge` | Uploads, background-task progress, filename and type filters, and individual or batch deletion |
+| Insights | `/insights` | 7-day or 30-day question trends, source hits, timings, and history |
+
+### Walkthrough
 
 1. Upload a PDF, DOCX, TXT, or Markdown document and wait for indexing.
 2. Ask a question and inspect the streamed answer; continue with a follow-up.
@@ -95,6 +105,15 @@ flowchart TD
 | Markdown rendering | Marked and DOMPurify |
 | Optional tracing | Separate Langfuse launcher |
 
+### Frameworks and code entry points
+
+| Module | Framework or responsibility | Entry points |
+| --- | --- | --- |
+| Web application | FastAPI routing, lifecycle, HTTP, and SSE | [Application assembly](../app/main.py), [chat API](../app/api/chat.py) |
+| Indexing | Parsing, semantic chunking, durable tasks, and recovery | [Task scheduling](../app/services/index_jobs.py), [document processing](../app/services/documents.py) |
+| Retrieval and generation | LangChain adapters, Jina embeddings, parallel retrieval, evidence fusion, and model generation | [RAG service](../app/services/rag.py), [knowledge graph](../app/services/knowledge_graph.py) |
+| Data and interface | SQLite records, Jinja2 templates, and JavaScript interactions | [Business storage](../app/repositories/workspace.py), [UI template](../app/web/templates/workspace.html) |
+
 ### Design decisions
 
 - **Persist tasks before processing them**: uploads do not wait for the entire indexing pipeline. Progress survives restarts, and unfinished tasks are recovered.
@@ -121,6 +140,24 @@ KB_project/
 ├── data/                    Local SQLite; only a placeholder is published
 └── upload_files/            Private uploaded originals; excluded from Git
 ```
+
+<a id="deployment"></a>
+## Deployment
+
+| Component | Runtime | Default endpoint or location |
+| --- | --- | --- |
+| Web and API | Python / Uvicorn process managed by Windows launchers | `http://127.0.0.1:8010` |
+| Milvus | Existing local containers or a remote service | `localhost:19530`, configurable in `.env` |
+| Neo4j (optional) | Project `compose.neo4j.yml`, pinned to `neo4j:5.26.0-community` | Browser: `127.0.0.1:7474`; Bolt: `127.0.0.1:7687` |
+| Embeddings | Loaded inside the Python process on CUDA or CPU | Model identifier or local directory in `.env` |
+| Generation model | Configured OpenAI-compatible service | Endpoint and model name in `.env` |
+| Business records | Local SQLite database and original files | `data/workspace.db`, `upload_files/` |
+
+- **Full workflow**: prepare Milvus, configure the model service and Neo4j password, then use the launcher to check databases and start the web server.
+- **Simplified workflow**: set `neo4j_enabled=false` to skip Neo4j while keeping document management, vector retrieval, and cited answers.
+- **Databases already running**: use the foreground Python command below to start only the web server; it does not start databases.
+
+The repository supplies a Compose file for Neo4j, not a Dockerfile or a one-command container deployment for the entire stack. The service is designed for local access; public or multi-user operation requires additional authentication, access isolation, and reverse-proxy design.
 
 <a id="quick-start"></a>
 ## Quick start
