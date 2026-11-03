@@ -1,14 +1,17 @@
 # Knowledge Studio · 知屿
 
-**A personal RAG workspace with hybrid retrieval, source citations, and full-document verification.**
+**Turn personal documents into a knowledge base you can question and verify.**
 
-[简体中文](README.md) · [English](README.en.md)
+Knowledge Studio is a local RAG workspace that retrieves evidence through vectors and entity relationships, then streams answers with citations. Use it to organize project documents, study notes, and text-based PDFs while checking answers against the original files.
+
+[Project home](../README.md) · [简体中文](README.md) · [English](README.en.md)
 
 <p align="center">
   <a href="#highlights">Highlights</a> ·
   <a href="#demo">Screenshots</a> ·
   <a href="#architecture">Architecture</a> ·
   <a href="#quick-start">Quick start</a> ·
+  <a href="#troubleshooting">Troubleshooting</a> ·
   <a href="#validation">Validation & limits</a> ·
   <a href="#documentation">Documentation</a>
 </p>
@@ -31,8 +34,6 @@ When knowledge lives across PDFs, Word documents, and notes, a plausible answer 
 | Streaming interaction | SSE status, sources, graph data, and text deltas | Incremental answers with completed results persisted |
 | Local operations | Process ownership checks, health probes, and duplicate-start detection | Managed startup and shutdown |
 
-The extensions in this version cover the workspace UI, document lifecycle, hybrid retrieval, source reading, persistence, and local operations.
-
 <a id="demo"></a>
 ## Screenshots and walkthrough
 
@@ -40,6 +41,17 @@ The extensions in this version cover the workspace UI, document lifecycle, hybri
 2. Ask a question and inspect the streamed answer; continue with a follow-up.
 3. Open a citation to inspect the full original, or expand the retrieved relationship graph.
 4. Check retrieval hits, answer duration, and history in the insights view.
+
+### Try a short document
+
+Create a TXT file with these two sentences, upload it, and wait for indexing:
+
+```text
+Lin Ran leads the Tian Shu project.
+The Tian Shu project uses the Qing Lan database.
+```
+
+In the same conversation, ask “Who leads the Tian Shu project?”, followed by “Which database does it use?”. Check the citations against the uploaded file and open the original text. If graph extraction is enabled and finds valid relationships, inspect the connected nodes as well. This example illustrates the workflow; actual answers depend on the model and retrieval results.
 
 See the [architecture guide](../docs/architecture.md) for implementation details.
 
@@ -83,6 +95,13 @@ flowchart TD
 | Markdown rendering | Marked and DOMPurify |
 | Optional tracing | Separate Langfuse launcher |
 
+### Design decisions
+
+- **Persist tasks before processing them**: uploads do not wait for the entire indexing pipeline. Progress survives restarts, and unfinished tasks are recovered.
+- **Separate stores with compensating cleanup**: SQLite, Milvus, and Neo4j own business records, vectors, and relationships. Failed writes trigger cleanup attempts; the document inventory is published after both indexes are ready.
+- **Save complete answers**: SSE displays text incrementally, while interrupted generations are kept out of completed conversation history.
+- **Connect graph views and citations to evidence**: graphs show relationships in the retrieved context, and source reading opens the complete document rather than only the retrieved excerpt.
+
 ## Repository layout
 
 ```text
@@ -108,7 +127,17 @@ KB_project/
 
 ### 1. Prepare the environment
 
-Use Python 3.10 and a reachable Milvus instance. Graph-enabled operation also needs Docker Desktop; [compose.neo4j.yml](../compose.neo4j.yml) manages Neo4j.
+The commands below use **Windows PowerShell and Python 3.10**. Prepare:
+
+| Requirement | Details |
+| --- | --- |
+| Python 3.10 | Use a virtual environment; dependencies are pinned in `requirements.txt` |
+| Milvus | A reachable local or remote instance; the Python client is pinned to `pymilvus==2.4.8` |
+| Model service | An OpenAI-compatible endpoint, model name, and working API key |
+| Embedding model | The default `jinaai/jina-embeddings-v3`, or a complete local model directory |
+| Docker Desktop | Needed when the launchers manage local database containers; the project Compose file manages Neo4j |
+
+Set `neo4j_enabled=false` in `.env` to start with vector-only answers. Keep it `true` for full hybrid retrieval.
 
 ```powershell
 git clone https://github.com/Auroral666/KB_project.git
@@ -127,12 +156,13 @@ Edit `.env` and check:
 | `milvus_host`, `milvus_port` | Existing Milvus endpoint; defaults to `localhost:19530` |
 | `neo4j_password` | Your own local Neo4j password |
 | `neo4j_enabled` | Set to `false` for vector-only retrieval |
+| `history_turns`, `semantic_threshold` | Defaults: 4 conversation turns and a 0.55 adjacent-sentence similarity threshold |
 
-A model identifier may download weights and model code on first use. Offline embeddings require a complete local model cache. Model licenses and provider terms apply separately.
+Using a model identifier may download weights and model code on first use. Offline embeddings require a complete local cache. The code selects CUDA or CPU based on availability. Replace the example model settings and key placeholders with values supported by your provider.
 
 ### 2. Prepare Milvus
 
-For a new installation, follow the [official Milvus deployment instructions](https://milvus.io/docs/v2.6.x/install_standalone-docker-compose.md). This launcher **resumes existing containers; it does not install or recreate Milvus**.
+For an initial deployment, consult the [official Milvus 2.4 Compose guide](https://milvus.io/docs/v2.4.x/install_standalone-docker-compose.md) and select the configuration for your server version. This repository does not include a Milvus Compose file. The launcher **resumes existing containers; it does not install or recreate Milvus**.
 
 The default local names are `milvus-etcd`, `milvus-minio`, and `milvus-standalone`. Override them with `milvus_etcd_container`, `milvus_minio_container`, and `milvus_container`. A remote Milvus instance is checked, not started locally.
 
@@ -143,7 +173,7 @@ $env:RAG_PYTHON = (Resolve-Path .\.venv\Scripts\python.exe).Path
 .\启动_停止项目\启动项目.cmd
 ```
 
-Open **http://127.0.0.1:8010**. Startup checks Milvus, Neo4j, and the web server in order. Embedding warmup continues in the background.
+Open [http://127.0.0.1:8010](http://127.0.0.1:8010). Startup checks Milvus, Neo4j, and the web server in order, skipping Neo4j when disabled. Background warmup runs when enabled and documents already exist; the first upload or retrieval may still wait for model loading.
 
 ```powershell
 .\启动_停止项目\停止项目.cmd
@@ -153,7 +183,37 @@ Open **http://127.0.0.1:8010**. Startup checks Milvus, Neo4j, and the web server
 
 The stop launcher leaves database containers running. Closing the startup window does not stop the background server. Set `RAG_PYTHON` in each new terminal or as a user environment variable; the original Conda path is only a compatibility default.
 
-Health: `GET /health`. Retrieval/model/graph state: `GET /api/status`. Logs: `temp/runtime/`.
+### 4. Check readiness
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8010/health
+Invoke-RestMethod http://127.0.0.1:8010/api/status
+```
+
+`/health` reports application liveness. In `/api/status`, `database` indicates Milvus connectivity, `embedding_loaded` indicates whether the embedding model is loaded, and `graph` reports graph configuration and connectivity. Logs are in `temp/runtime/`.
+
+<a id="troubleshooting"></a>
+## Troubleshooting
+
+| Symptom | What to check |
+| --- | --- |
+| Python is not found | Set `RAG_PYTHON` in the current PowerShell session to the project's virtual-environment executable; the compatibility default may refer to a different machine |
+| Milvus is not ready | Check the endpoint and container names in `.env`; containers must already be installed, and remote services must be started on their host |
+| Model requests fail | Check the key, endpoint, model name, and provider response; replace placeholders in `.env` and restart the web service after configuration changes |
+| First indexing is slow | Check model downloads and the local cache; CPU embeddings, semantic chunking, and relationship extraction take time. Inspect task stages and logs |
+| Citations appear but the graph is empty | Check that graph retrieval is enabled, Neo4j is reachable, and the document contains relationships that pass literal-evidence checks. Documents without valid relationships can still be indexed as vectors |
+| A PDF has no extractable text | Run OCR first for scanned files; the parser does not perform OCR |
+
+### Local data locations
+
+| Location | Contents |
+| --- | --- |
+| `data/workspace.db` | Document inventory, indexing tasks, conversations, and messages |
+| `upload_files/` | Uploaded originals |
+| Milvus collection / Neo4j namespace | Both default to `kb_project_knowledge`; configurable in `.env` |
+| `temp/runtime/` | Service logs and process records |
+
+Backups should account for business records, originals, and both indexes; see [data maintenance](../docs/architecture.md). Private environment files, actual data, and local temporary files are excluded by Git ignore rules.
 
 <a id="validation"></a>
 ## Validation and limits
@@ -167,7 +227,7 @@ Run the isolated regression suite without external generation-model calls:
 
 See [tests/README.md](../tests/README.md) for DOM checks and opt-in live evaluation. Live evaluation uses configured model services and may incur charges.
 
-- Indexing uses a single-process worker queue; do not share it across multiple Uvicorn workers.
+- Indexing uses a single-process worker queue; do not share it across multiple Uvicorn workers. Task cancellation and automatic retry of failed tasks are not implemented; resolve the cause and upload again.
 - PDF, DOCX, TXT, and MD uploads are limited to 20 MB per file. Scans require OCR first; DOCX uses extracted text rather than Word layout.
 - Source-hit rate is not answer accuracy. Fixed-fixture evaluation does not establish production quality.
 - Original files and application records stay local, but rewriting, extraction, and generation send relevant history or document fragments to the configured model service.
@@ -180,4 +240,6 @@ See [tests/README.md](../tests/README.md) for DOM checks and opt-in live evaluat
 - [Hybrid retrieval and graph setup](../docs/hybrid-rag.md)
 - [Graph contract](../docs/graph-contract.md)
 - [Publication scope](../docs/PUBLISHING.md)
+- [Fixed-fixture evaluation record](../docs/sprint-validation.md)
+- [Optional Langfuse tracing](../langfuse/Langfuse观测说明.txt)
 - [Chinese README](README.md)
