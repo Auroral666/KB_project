@@ -1,6 +1,0 @@
-Knowledge Studio includes adapted components from Knowledge_QA_RAG by CS_木成河.
-Original project documentation: https://blog.csdn.net/weixin_47936614/article/details/143932997
-The upstream Apache License 2.0 is retained in docs/third-party/LICENSE.
-
-This distribution changes the application interface, document lifecycle, retrieval
-citations, local persistence, analytics and project-specific configuration.

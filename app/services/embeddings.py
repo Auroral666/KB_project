@@ -1,8 +1,4 @@
 # !/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# @author: CS_木成河
-# @time: 2024/10/31 14:33
-# @blog: https://blog.csdn.net/weixin_47936614
 
 from langchain_core.embeddings import Embeddings
 from sentence_transformers import SentenceTransformer

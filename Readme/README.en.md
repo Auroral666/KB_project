@@ -10,13 +10,12 @@
   <a href="#architecture">Architecture</a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="#validation">Validation & limits</a> ·
-  <a href="#documentation">Documentation</a> ·
-  <a href="#license">License & credits</a>
+  <a href="#documentation">Documentation</a>
 </p>
 
-![Chat and source citations](../docs/images/chat-demo.png)
+![Chat, citations, and relationship graph](../docs/images/chat-demo.png)
 
-> Screenshots show the actual UI with an isolated database, synthetic documents, and a predefined demonstration answer. They demonstrate the interface, not model quality. Both Chinese and English READMEs are available; the application UI is currently Chinese.
+> Application screenshot: the chat page with answer citations, a relationship graph, the knowledge scope, and recent conversations. Both Chinese and English READMEs are available; the application UI is currently Chinese.
 
 <a id="highlights"></a>
 ## Highlights
@@ -32,12 +31,10 @@ When knowledge lives across PDFs, Word documents, and notes, a plausible answer 
 | Streaming interaction | SSE status, sources, graph data, and text deltas | Incremental answers with completed results persisted |
 | Local operations | Process ownership checks, health probes, and duplicate-start detection | Managed startup and shutdown |
 
-The extensions in this version cover the workspace UI, document lifecycle, hybrid retrieval, source reading, persistence, and local operations. Adapted upstream embedding components retain their attribution in [NOTICE](../docs/third-party/NOTICE).
+The extensions in this version cover the workspace UI, document lifecycle, hybrid retrieval, source reading, persistence, and local operations.
 
 <a id="demo"></a>
 ## Screenshots and walkthrough
-
-![Workspace overview](../docs/images/workspace-demo.png)
 
 1. Upload a PDF, DOCX, TXT, or Markdown document and wait for indexing.
 2. Ask a question and inspect the streamed answer; continue with a follow-up.
@@ -184,8 +181,3 @@ See [tests/README.md](../tests/README.md) for DOM checks and opt-in live evaluat
 - [Graph contract](../docs/graph-contract.md)
 - [Publication scope](../docs/PUBLISHING.md)
 - [Chinese README](README.md)
-
-<a id="license"></a>
-## License and credits
-
-Adapted components from Knowledge_QA_RAG by CS_木成河 retain the upstream Apache License 2.0 and attribution. See [LICENSE](../docs/third-party/LICENSE) and [NOTICE](../docs/third-party/NOTICE). Frontend component licenses remain under `app/web/static/vendor/`; model weights and model services have their own terms.

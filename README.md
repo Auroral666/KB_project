@@ -10,12 +10,11 @@
   <a href="Readme/README.md#architecture">架构设计</a> ·
   <a href="Readme/README.md#quick-start">快速开始</a> ·
   <a href="Readme/README.md#validation">验证与边界</a> ·
-  <a href="Readme/README.md#documentation">文档</a> ·
-  <a href="Readme/README.md#license">许可与来源</a>
+  <a href="Readme/README.md#documentation">文档</a>
 </p>
 
-![知识问答与引用界面](docs/images/chat-demo.png)
+![智能问答与关系图谱](docs/images/chat-demo.png)
 
-> 截图使用隔离数据库、合成资料和预置演示回答，用于展示交互，不作为模型效果评测。
+> 项目运行截图：智能问答页面，展示回答引用、关系图谱、知识范围与最近会话。
 
-完整中英文项目说明统一放在 `Readme/`，包含架构、安装配置、演示、验证方法及许可信息。
+完整中英文项目说明统一放在 `Readme/`，包含架构、安装配置、演示、验证方法。

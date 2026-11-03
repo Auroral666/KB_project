@@ -10,13 +10,12 @@
   <a href="#architecture">架构设计</a> ·
   <a href="#quick-start">快速开始</a> ·
   <a href="#validation">验证与边界</a> ·
-  <a href="#documentation">文档</a> ·
-  <a href="#license">许可与来源</a>
+  <a href="#documentation">文档</a>
 </p>
 
-![知识问答与引用界面](../docs/images/chat-demo.png)
+![智能问答与关系图谱](../docs/images/chat-demo.png)
 
-> 截图来自项目的真实界面，使用隔离数据库、合成资料和预置演示回答；用于展示交互，不作为模型效果评测。README 提供中英文版本，当前应用界面为中文。
+> 项目运行截图：智能问答页面，展示回答引用、关系图谱、知识范围与最近会话。README 提供中英文版本，当前应用界面为中文。
 
 <a id="highlights"></a>
 ## 项目亮点
@@ -32,12 +31,10 @@
 | 流式交互 | SSE 推送状态、来源、图谱和文字增量 | 回答逐步呈现，完整结果持久化 |
 | 本地运维 | 进程归属校验、健康检查、重复启动识别 | 一键启停网页及检查数据库依赖 |
 
-本版本的扩展集中在工作台界面、文档生命周期、混合检索、引用阅读、持久化与本地运维。项目保留上游嵌入适配组件及其署名，详见 [NOTICE](../docs/third-party/NOTICE)。
+本版本的扩展集中在工作台界面、文档生命周期、混合检索、引用阅读、持久化与本地运维。
 
 <a id="demo"></a>
 ## 实际界面与演示路径
-
-![工作台概览](../docs/images/workspace-demo.png)
 
 1. 上传 PDF、DOCX、TXT 或 Markdown，等待后台建库成功。
 2. 提问并查看流式回答；继续追问，观察上下文改写后的检索结果。
@@ -184,8 +181,3 @@ $env:RAG_PYTHON = (Resolve-Path .\.venv\Scripts\python.exe).Path
 - [图谱数据约定](../docs/graph-contract.md)
 - [上传范围与排除清单](../docs/PUBLISHING.md)
 - [English README](README.en.md)
-
-<a id="license"></a>
-## 许可与来源
-
-保留上游 Knowledge_QA_RAG（CS_木成河）的适配组件、Apache License 2.0 和署名。详情见 [LICENSE](../docs/third-party/LICENSE)、[NOTICE](../docs/third-party/NOTICE)。前端第三方组件许可证位于 `app/web/static/vendor/`，模型权重及模型服务各自适用其许可或条款。

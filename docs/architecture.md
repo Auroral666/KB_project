@@ -1,6 +1,6 @@
 # 项目结构与维护约定
 
-应用主线集中在 `app/`。根目录只保留启动入口、配置、依赖清单与说明；上游许可和来源说明集中在 `docs/third-party/`，前端组件许可随组件保留，数据、测试和临时内容各自独立。
+应用主线集中在 `app/`。根目录只保留启动入口、配置、依赖清单与说明；数据、测试和临时内容各自独立。
 
 ## 职责与依赖
 
@@ -21,7 +21,7 @@ app/main.py                 组装应用、生命周期、通用中间件
 - `services/rag.py`：向量库连接、检索缓存、模型复用、预热及生成。
 - `services/knowledge_graph.py`：有依据的关系抽取、Neo4j 写入、两跳查询与局部图谱数据。
 - `services/index_jobs.py`：持久化后台建库任务、单线程处理及重启恢复。
-- `services/embeddings.py`：嵌入模型适配，保留上游署名。
+- `services/embeddings.py`：嵌入模型适配。
 - `repositories/workspace.py`：SQLite 连接、建表和兼容迁移、文档清单、会话、消息与统计 SQL。
 - `web/templates/`、`web/static/`：页面、样式、交互和本地第三方组件。对外资源地址仍是 `/static/...`。
 - `config.py`：统一定位项目根目录、配置、持久数据和页面资源，路径不依赖启动时的工作目录。
